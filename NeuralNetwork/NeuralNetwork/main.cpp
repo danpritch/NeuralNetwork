@@ -1,16 +1,12 @@
 #include <stdio.h>
 #include <iostream>
 #include <math.h>
-
+#include "Header.h"
 
 using namespace std;
 
 //constants
-const int input = 3;
-const int hidden = 7;
-const int output = 7;
-const int inputDataLength = 5000;
-const int trainingDataLength = 4950;
+
 
 //variables
 double learningRate = 0.9;
