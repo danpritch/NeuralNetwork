@@ -2,6 +2,11 @@
 #include <iostream>
 #include <math.h>
 #include "Header.h"
+#include <fstream>
+#include <vector>
+#include <string>
+#include <windows.h>
+#include <time.h>
 
 using namespace std;
 
@@ -16,6 +21,7 @@ unsigned char netInputs[inputDataLength];
 double netInputsBits[inputDataLength][input];
 double desiredOutputBits[inputDataLength][output];
 double setError[inputDataLength];
+char clampedOutput[output];
 
 //neurons
 double* inputNeurons;
@@ -59,23 +65,146 @@ void updateWeights(void);
 void initialiseNetwork(void);
 void getErrors(int index);
 void displayOutput(void);
+void writeCSV(void);
+void modulus(void);
+void trainNetwork(void);
+void displayOutputNeurons(void);
+void clampOutputs(void);
 
 int main(void)
 {
+	char train = 'y';
+	char train2 = 'y';
+	char charIn[4];
 	initialiseNetwork();
+
+	while (train == 'y')
+	{
+		cout << "Would you like to test the untrained network? [y/n]: ";
+		cin >> train;
+		cin.ignore();
+		if (train == 'y')
+		{
+			cout << "Please enter a 3-bit number (i.e. 101) : ";
+			cin.getline(charIn,4);
+			//cout << (int(charIn[0]) - 48) << (int(charIn[1]) - 48) << (int(charIn[2]) - 48) << endl;
+
+			inputNeurons[2] = int(charIn[0]) - 48;
+			inputNeurons[1] = int(charIn[1]) - 48;
+			inputNeurons[0] = int(charIn[2]) - 48;
+
+			calculateHiddenLayer();
+			calculateOutputLayer();
+			clampOutputs();
+
+			displayOutputNeurons();
+		}
+	}
+
+	trainNetwork();
+
+	while (train2 == 'y')
+	{
+		cout << "Would you like to test the trained network? [y/n]: ";
+		cin >> train2;
+		cin.ignore();
+		if (train2 == 'y')
+		{
+			cout << "Please enter a 3-bit number (i.e. 101) : ";
+			cin.getline(charIn,4);
+			//cout << (int(charIn[0]) - 48) << (int(charIn[1]) - 48) << (int(charIn[2]) - 48) << endl;
+
+			inputNeurons[2] = int(charIn[0]) - 48;
+			inputNeurons[1] = int(charIn[1]) - 48;
+			inputNeurons[0] = int(charIn[2]) - 48;
+
+			calculateHiddenLayer();
+			calculateOutputLayer();
+			clampOutputs();
+
+			displayOutputNeurons();
+		}
+	}
+
+	//checkNet();
+	//displayOutput();
+	modulus();
+	writeCSV();
+
+	cout << "Press any key to exit";
+	cin.get();
+	return(0);
+}
+
+void clampOutputs(void)
+{
+	for (int i = 0; i < output; i++)
+	{
+		if(outputNeurons[i] > 0.9)
+		{
+			clampedOutput[i] = '1';
+		}
+		else if(outputNeurons[i] < 0.1)
+		{
+			clampedOutput[i] = '0';
+		}
+		else
+		{
+			clampedOutput[i] = 'n';
+		}
+	}
+}
+
+
+void displayOutputNeurons(void)
+{
+	cout << fixed << "Output '1' = " << outputNeurons[0] << "			Clamped output is: " << clampedOutput[0] << endl;
+	cout << fixed << "Output '2' = " << outputNeurons[1] << "			Clamped output is: " << clampedOutput[1] << endl;
+	cout << fixed << "Output '3' = " << outputNeurons[2] << "			Clamped output is: " << clampedOutput[2] << endl;
+	cout << fixed << "Output '4' = " << outputNeurons[3] << "			Clamped output is: " << clampedOutput[3] << endl;
+	cout << fixed << "Output '5' = " << outputNeurons[4] << "			Clamped output is: " << clampedOutput[4] << endl;
+	cout << fixed << "Output '6' = " << outputNeurons[5] << "			Clamped output is: " << clampedOutput[5] << endl;
+	cout << fixed << "Output '7' = " << outputNeurons[6] << "			Clamped output is: " << clampedOutput[6] << endl;
+}
+
+
+void trainNetwork(void)
+{
 	for (int i = 0; i < trainingDataLength; i++)
 	{
 		passInputData(netInputsBits, i);	
 		calculateHiddenLayer();
 		calculateOutputLayer();
 		errorsAndGradients(i);
-		//getErrors(i);
+		getErrors(i);
 		updateWeights();
 	}
-	checkNet();
-	//displayOutput();
-	cin.get();
-	return(0);
+}
+
+
+void modulus(void)
+{
+	for(int i = 0; i < trainingDataLength; i++)
+	{
+		if(setError[i] < 0)
+		{
+			setError[i] = setError[i]*-1;
+		}
+	}
+}
+
+
+void writeCSV(void)
+{
+	ofstream MyFile;
+	MyFile.open("Ouput.csv"); //, ios::out | ios::ate | ios::app);
+
+	for(int i = 0; i < trainingDataLength; i++)
+	{
+		MyFile << setError[i];
+		MyFile << ',';
+	}
+	MyFile.close();
 }
 
 void displayOutput(void)
@@ -92,7 +221,7 @@ void getErrors(int index)
 	setError[index] = 0;
 	for(int k = 0; k < output; k++)
 	{
-		setError[index]  += desiredOutputBits[index][k] - outputNeurons[k];
+		setError[index]  += outputNeurons[k] - desiredOutputBits[index][k];
 	}
 	setError[index] = setError[index]/output;
 }
