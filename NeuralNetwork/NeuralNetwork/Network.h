@@ -29,3 +29,19 @@ public:
 
 	int getNumHidden(void);
 };
+
+class outputLayer
+{
+private:
+	int numOutput;
+	double* outputNeurons;
+
+public:
+	outputLayer(int n);
+
+	double getNeuron(int n);
+
+	void setNeuron(int n, double value);
+
+	int getNumOutput(void);
+};

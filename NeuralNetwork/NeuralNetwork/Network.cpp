@@ -26,7 +26,9 @@ void inputLayer::setNeuron(int n, double value)
 int inputLayer::getInputs(void)
 {
 	return numInputs;
-}	
+}
+
+//Functions for hidden layer class
 
 hiddenLayer::hiddenLayer(int n)
 {
@@ -49,4 +51,30 @@ void hiddenLayer::setNeuron(int n, double value)
 int hiddenLayer::getNumHidden(void)
 {
 	return numHidden;
+}
+
+//Functions for output layer class
+
+outputLayer::outputLayer(int n)
+{
+	numOutput = n;
+
+	//No bias neuron
+	outputNeurons = new(double[numOutput]);
+	for (int i = 0; i <= numOutput; i++) outputNeurons[i] = 0;
+}
+
+double outputLayer::getNeuron(int n)
+{
+	return outputNeurons[n];
+}
+
+void outputLayer::setNeuron(int n, double value)
+{
+	outputNeurons[n] = value;
+}
+
+int outputLayer::getNumOutput(void)
+{
+	return numOutput;
 }

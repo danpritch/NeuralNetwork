@@ -33,7 +33,7 @@ char clampedOutput[output];
 //neurons
 //double* inputNeurons;
 //double* hiddenNeurons;
-double* outputNeurons;
+//double* outputNeurons;
 
 //weights
 double** wInputHidden;
@@ -52,7 +52,7 @@ double* outputErrorGradients;
 //prototypes
 void createLayers(int input, int hidden, int output);
 void createWeights(int input, int hidden, int output);
-void checkNet(inputLayer iL);
+void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL);
 void genRand(void);
 void initialiseWeights(void);
 void generateNetInputs(void);
@@ -61,23 +61,23 @@ void generateNetInputsBits(void);
 void passInputData(inputLayer iL, double data[][input], int index);
 double activationFunction(double x);
 void calculateHiddenLayer(inputLayer iL, hiddenLayer hL);
-void calculateOutputLayer(hiddenLayer hL);
+void calculateOutputLayer(hiddenLayer hL, outputLayer oL);
 void calculateDesiredOutput(void);
 void checkOutputs(void);
 void calculateErrors(void);
 void createDeltaLists(void);
 void createErrorGradients(void);
-void errorsAndGradients(inputLayer iL, hiddenLayer hL, int index);
+void errorsAndGradients(inputLayer iL, hiddenLayer hL, outputLayer oL, int index);
 void checkDelta(void);
 void updateWeights(void);
 void initialiseNetwork(void);
-void getErrors(int index);
+void getErrors(outputLayer oL, int index);
 void displayOutput(void);
 void writeCSV(void);
 void modulus(void);
 void trainNetwork(void);
-void displayOutputNeurons(void);
-void clampOutputs(void);
+void displayOutputNeurons(outputLayer oL);
+void clampOutputs(outputLayer oL);
 
 int main(void)
 {
@@ -88,10 +88,11 @@ int main(void)
 
 	inputLayer testLayer(input);
 	hiddenLayer hLayer(hidden);
+	outputLayer oLayer(output);
 	generateNetInputs();
 	generateNetInputsBits();
 	calculateDesiredOutput();
-	createLayers(input, hidden, output);
+	//createLayers(input, hidden, output);
 	createWeights(input, hidden, output);
 	createDeltaLists();
 	createErrorGradients();
@@ -119,10 +120,10 @@ int main(void)
 			
 
 			calculateHiddenLayer(testLayer, hLayer);
-			calculateOutputLayer(hLayer);
-			clampOutputs();
+			calculateOutputLayer(hLayer, oLayer);
+			clampOutputs(oLayer);
 
-			displayOutputNeurons();
+			displayOutputNeurons(oLayer);
 		}
 	}
 
@@ -132,10 +133,10 @@ int main(void)
 		//Needs changed!!!! Or maybe it doesnt, passInputData can probably do it.
 		passInputData(testLayer, netInputsBits, i);	
 		calculateHiddenLayer(testLayer, hLayer);
-		calculateOutputLayer(hLayer);
+		calculateOutputLayer(hLayer, oLayer);
 		//errorsAndGradients(i);
-		errorsAndGradients(testLayer, hLayer, i);
-		getErrors(i);
+		errorsAndGradients(testLayer, hLayer, oLayer, i);
+		getErrors(oLayer, i);
 		updateWeights();
 	}
 
@@ -156,10 +157,10 @@ int main(void)
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
 
 			calculateHiddenLayer(testLayer, hLayer);
-			calculateOutputLayer(hLayer);
-			clampOutputs();
+			calculateOutputLayer(hLayer, oLayer);
+			clampOutputs(oLayer);
 
-			displayOutputNeurons();
+			displayOutputNeurons(oLayer);
 		}
 	}
 
@@ -173,34 +174,37 @@ int main(void)
 	return(0);
 }
 
-void clampOutputs(void)
+void clampOutputs(outputLayer oL)
 {
 	for (int i = 0; i < output; i++)
 	{
-		if(outputNeurons[i] > 0.9)
+
+		//if(outputNeurons[i] > 0.9)
+		if(oL.getNeuron(i) > 0.9)
 		{
 			clampedOutput[i] = '1';
 		}
-		else if(outputNeurons[i] < 0.1)
+		else if(oL.getNeuron(i) < 0.1)
 		{
 			clampedOutput[i] = '0';
 		}
 		else
 		{
-			clampedOutput[i] = 'n';
+			clampedOutput[i] = '?';
 		}
 	}
 }
 
-void displayOutputNeurons(void)
+//This function can also be made alot smaller with a loop. Do this later though.
+void displayOutputNeurons(outputLayer oL)
 {
-	cout << fixed << "Output '1' = " << outputNeurons[0] << "			Clamped output is: " << clampedOutput[0] << endl;
-	cout << fixed << "Output '2' = " << outputNeurons[1] << "			Clamped output is: " << clampedOutput[1] << endl;
-	cout << fixed << "Output '3' = " << outputNeurons[2] << "			Clamped output is: " << clampedOutput[2] << endl;
-	cout << fixed << "Output '4' = " << outputNeurons[3] << "			Clamped output is: " << clampedOutput[3] << endl;
-	cout << fixed << "Output '5' = " << outputNeurons[4] << "			Clamped output is: " << clampedOutput[4] << endl;
-	cout << fixed << "Output '6' = " << outputNeurons[5] << "			Clamped output is: " << clampedOutput[5] << endl;
-	cout << fixed << "Output '7' = " << outputNeurons[6] << "			Clamped output is: " << clampedOutput[6] << endl;
+	cout << fixed << "Output '1' = " << oL.getNeuron(0) << "			Clamped output is: " << clampedOutput[0] << endl;
+	cout << fixed << "Output '2' = " << oL.getNeuron(1) << "			Clamped output is: " << clampedOutput[1] << endl;
+	cout << fixed << "Output '3' = " << oL.getNeuron(2) << "			Clamped output is: " << clampedOutput[2] << endl;
+	cout << fixed << "Output '4' = " << oL.getNeuron(3) << "			Clamped output is: " << clampedOutput[3] << endl;
+	cout << fixed << "Output '5' = " << oL.getNeuron(4) << "			Clamped output is: " << clampedOutput[4] << endl;
+	cout << fixed << "Output '6' = " << oL.getNeuron(5) << "			Clamped output is: " << clampedOutput[5] << endl;
+	cout << fixed << "Output '7' = " << oL.getNeuron(6) << "			Clamped output is: " << clampedOutput[6] << endl;
 }
 
 void trainNetwork(void)
@@ -249,12 +253,13 @@ void displayOutput(void)
 	}		
 }
 
-void getErrors(int index)
+void getErrors(outputLayer oL, int index)
 {
 	setError[index] = 0;
 	for(int k = 0; k < output; k++)
 	{
-		setError[index]  += outputNeurons[k] - desiredOutputBits[index][k];
+		//setError[index]  += outputNeurons[k] - desiredOutputBits[index][k];
+		setError[index]  += oL.getNeuron(k) - desiredOutputBits[index][k];
 	}
 	setError[index] = setError[index]/output;
 }
@@ -273,6 +278,7 @@ void initialiseNetwork(void)
 	//initialiseWeights();
 }
 
+//This can probably be gotten ride of now
 void createLayers(int input, int hidden, int output)
 {
 
@@ -290,8 +296,8 @@ void createLayers(int input, int hidden, int output)
 	//create hidden bias neuron
 	//hiddenNeurons[hidden] = -1;
 
-	outputNeurons = new( double[output] );
-	for ( int i=0; i < output; i++ ) outputNeurons[i] = 0;
+	//outputNeurons = new( double[output] );
+	//for ( int i=0; i < output; i++ ) outputNeurons[i] = 0;
 }
 
 void createWeights(int input, int hidden, int output)
@@ -319,7 +325,8 @@ void createWeights(int input, int hidden, int output)
 	}
 }
 
-void checkNet(inputLayer iL, hiddenLayer hL)
+//Change prototype
+void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL)
 {
 	//Check input layer
 
@@ -339,7 +346,7 @@ void checkNet(inputLayer iL, hiddenLayer hL)
 	//Check output layer
 	for(int i = 0; i < (output); i++)
 	{
-		cout << "outputNeurons element: " << i << " has been created. Value = " << outputNeurons[i] << endl;
+		cout << "outputNeurons element: " << i << " has been created. Value = " << oL.getNeuron(i) << endl;
 	}
 
 	//Check hidden input weights
@@ -491,19 +498,22 @@ void calculateHiddenLayer(inputLayer iL, hiddenLayer hL)
 	}
 }
 
-void calculateOutputLayer(hiddenLayer hL)
+void calculateOutputLayer(hiddenLayer hL, outputLayer oL)
 {
-		for(int k=0; k < output; k++)
+	for(int k=0; k < output; k++)
 	{
 		//clear value
-		outputNeurons[k] = 0;				
+		//outputNeurons[k] = 0;	
+		oL.setNeuron(k, 0);
 		
 		//get weighted sum of pattern and bias neuron
 		//for( int j=0; j <= hidden; j++ ) outputNeurons[k] += hiddenNeurons[j] * wHiddenOutput[j][k];
-		for( int j=0; j <= hidden; j++ ) outputNeurons[k] += hL.getNeuron(j) * wHiddenOutput[j][k];
+		//for( int j=0; j <= hidden; j++ ) outputNeurons[k] += hL.getNeuron(j) * wHiddenOutput[j][k];
+		for( int j=0; j <= hidden; j++ ) oL.setNeuron(k, (oL.getNeuron(k) + (hL.getNeuron(j) * wHiddenOutput[j][k])));
 		
 		//set to result of sigmoid
-		outputNeurons[k] = activationFunction( outputNeurons[k] );
+		//outputNeurons[k] = activationFunction( outputNeurons[k] );
+		oL.setNeuron(k, activationFunction(oL.getNeuron(k)));
 	}
 }
 
@@ -607,12 +617,14 @@ void createErrorGradients(void)
 	for ( int i=0; i <= output; i++ ) outputErrorGradients[i] = 0;
 }
 
-void errorsAndGradients(inputLayer iL, hiddenLayer hL, int index)
+void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL,int index)
 {
 	//Creates deltas for all connections between hidden and output layer
 	for(int k = 0; k < output; k++)
 	{
-		outputErrorGradients[k] = outputNeurons[k]*(1-outputNeurons[k])*(desiredOutputBits[index][k] - outputNeurons[k]);
+		//outputErrorGradients[k] = outputNeurons[k]*(1-outputNeurons[k])*(desiredOutputBits[index][k] - outputNeurons[k]);
+		outputErrorGradients[k] = oL.getNeuron(k)*(1-oL.getNeuron(k))*(desiredOutputBits[index][k] - oL.getNeuron(k));
+
 
 		//for all nodes in hidden layer and bias neuron
 		//The less than or equal includes the bias neuron
