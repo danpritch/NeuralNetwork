@@ -2,11 +2,12 @@
 #include <iostream>
 #include <math.h>
 //#include "Header.h"
+#include "Network.h"
 #include <fstream>
-#include <vector>
+//#include <vector>
 #include <string>
-#include <windows.h>
-#include <time.h>
+//#include <windows.h>
+//#include <time.h>
 
 using namespace std;
 
@@ -31,7 +32,7 @@ char clampedOutput[output];
 
 //neurons
 //double* inputNeurons;
-double* hiddenNeurons;
+//double* hiddenNeurons;
 double* outputNeurons;
 
 //weights
@@ -46,36 +47,7 @@ double** deltaHiddenOutput;
 double* hiddenErrorGradients;
 double* outputErrorGradients;
 
-class inputLayer
-{
-private:
-	int numInputs;
-	double* inputNeurons;
 
-public:
-	inputLayer(int n)
-	{
-		numInputs = n;
-		inputNeurons = new(double[(numInputs + 1)]);
-		for (int i = 0; i < numInputs; i++){ inputNeurons[i] = 0;}
-		inputNeurons[numInputs] = -1;
-	}
-
-	double getNeuron(int n)
-	{
-		return inputNeurons[n];
-	}
-
-	void setNeuron(int n, double value)
-	{
-		inputNeurons[n] = value;
-	}
-
-	int getInputs(void)
-	{
-		return numInputs;
-	}	
-};
 
 //prototypes
 void createLayers(int input, int hidden, int output);
@@ -88,15 +60,14 @@ void checkInputData(void);
 void generateNetInputsBits(void);
 void passInputData(inputLayer iL, double data[][input], int index);
 double activationFunction(double x);
-void calculateHiddenLayer(inputLayer iL);
-void calculateOutputLayer(void);
+void calculateHiddenLayer(inputLayer iL, hiddenLayer hL);
+void calculateOutputLayer(hiddenLayer hL);
 void calculateDesiredOutput(void);
 void checkOutputs(void);
 void calculateErrors(void);
 void createDeltaLists(void);
 void createErrorGradients(void);
-void errorsAndGradients(int index);
-void errorsAndGradients(inputLayer iL, int index);
+void errorsAndGradients(inputLayer iL, hiddenLayer hL, int index);
 void checkDelta(void);
 void updateWeights(void);
 void initialiseNetwork(void);
@@ -108,9 +79,6 @@ void trainNetwork(void);
 void displayOutputNeurons(void);
 void clampOutputs(void);
 
-
-
-
 int main(void)
 {
 	char train = 'y';
@@ -119,6 +87,7 @@ int main(void)
 	//initialiseNetwork();
 
 	inputLayer testLayer(input);
+	hiddenLayer hLayer(hidden);
 	generateNetInputs();
 	generateNetInputsBits();
 	calculateDesiredOutput();
@@ -149,8 +118,8 @@ int main(void)
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
 			
 
-			calculateHiddenLayer(testLayer);
-			calculateOutputLayer();
+			calculateHiddenLayer(testLayer, hLayer);
+			calculateOutputLayer(hLayer);
 			clampOutputs();
 
 			displayOutputNeurons();
@@ -162,10 +131,10 @@ int main(void)
 	{
 		//Needs changed!!!! Or maybe it doesnt, passInputData can probably do it.
 		passInputData(testLayer, netInputsBits, i);	
-		calculateHiddenLayer(testLayer);
-		calculateOutputLayer();
+		calculateHiddenLayer(testLayer, hLayer);
+		calculateOutputLayer(hLayer);
 		//errorsAndGradients(i);
-		errorsAndGradients(testLayer, i);
+		errorsAndGradients(testLayer, hLayer, i);
 		getErrors(i);
 		updateWeights();
 	}
@@ -186,8 +155,8 @@ int main(void)
 			testLayer.setNeuron(1, int(charIn[1]) - 48);
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
 
-			calculateHiddenLayer(testLayer);
-			calculateOutputLayer();
+			calculateHiddenLayer(testLayer, hLayer);
+			calculateOutputLayer(hLayer);
 			clampOutputs();
 
 			displayOutputNeurons();
@@ -293,15 +262,15 @@ void getErrors(int index)
 void initialiseNetwork(void)
 {
 	//Needs changed!!!! Changed to create instance of inputLayer class
-	inputLayer testLayer(input);
-	generateNetInputs();
-	generateNetInputsBits();
-	calculateDesiredOutput();
-	createLayers(input, hidden, output);
-	createWeights(input, hidden, output);
-	createDeltaLists();
-	createErrorGradients();
-	initialiseWeights();
+	//inputLayer testLayer(input);
+	//generateNetInputs();
+	//generateNetInputsBits();
+	//calculateDesiredOutput();
+	//createLayers(input, hidden, output);
+	//createWeights(input, hidden, output);
+	//createDeltaLists();
+	//createErrorGradients();
+	//initialiseWeights();
 }
 
 void createLayers(int input, int hidden, int output)
@@ -315,11 +284,11 @@ void createLayers(int input, int hidden, int output)
 	//create input bias neuron
 	//inputNeurons[input] = -1;
 
-	hiddenNeurons = new( double[hidden + 1] );
-	for ( int i=0; i < hidden; i++ ) hiddenNeurons[i] = 0;
+	//hiddenNeurons = new( double[hidden + 1] );
+	//for ( int i=0; i < hidden; i++ ) hiddenNeurons[i] = 0;
 
 	//create hidden bias neuron
-	hiddenNeurons[hidden] = -1;
+	//hiddenNeurons[hidden] = -1;
 
 	outputNeurons = new( double[output] );
 	for ( int i=0; i < output; i++ ) outputNeurons[i] = 0;
@@ -350,7 +319,7 @@ void createWeights(int input, int hidden, int output)
 	}
 }
 
-void checkNet(inputLayer iL)
+void checkNet(inputLayer iL, hiddenLayer hL)
 {
 	//Check input layer
 
@@ -364,7 +333,7 @@ void checkNet(inputLayer iL)
 	//Check hidden layer
 	for(int i = 0; i < (hidden + 1); i++)
 	{
-		cout << "hiddenNeurons element: " << i << " has been created. Value = " << hiddenNeurons[i] << endl;
+		cout << "hiddenNeurons element: " << i << " has been created. Value = " << hL.getNeuron(i) << endl;
 	}
 
 	//Check output layer
@@ -499,24 +468,30 @@ double activationFunction(double x)
 	return 1/(1+exp(-x));
 }	
 
-void calculateHiddenLayer(inputLayer iL)
+void calculateHiddenLayer(inputLayer iL, hiddenLayer hL)
 {
 	for(int j=0; j < hidden; j++)
 	{
 		//clear value
-		hiddenNeurons[j] = 0;				
+		//hiddenNeurons[j] = 0;
+		hL.setNeuron(j, 0);
 		
 		//get weighted sum of pattern and bias neuron
 
 		//Needs changed!!!! Changed
-		for( int i=0; i <= input; i++ ) hiddenNeurons[j] += iL.getNeuron(i) * wInputHidden[i][j];
+		for( int i=0; i <= input; i++ )// hiddenNeurons[j] += iL.getNeuron(i) * wInputHidden[i][j];
+		{
+			hL.setNeuron(j, (hL.getNeuron(j) + (iL.getNeuron(i) * wInputHidden[i][j])));
+		}
+
 		
 		//set to result of sigmoid
-		hiddenNeurons[j] = activationFunction( hiddenNeurons[j] );			
+		//hiddenNeurons[j] = activationFunction( hiddenNeurons[j] );	
+		hL.setNeuron(j, activationFunction(hL.getNeuron(j)));
 	}
 }
 
-void calculateOutputLayer(void)
+void calculateOutputLayer(hiddenLayer hL)
 {
 		for(int k=0; k < output; k++)
 	{
@@ -524,7 +499,8 @@ void calculateOutputLayer(void)
 		outputNeurons[k] = 0;				
 		
 		//get weighted sum of pattern and bias neuron
-		for( int j=0; j <= hidden; j++ ) outputNeurons[k] += hiddenNeurons[j] * wHiddenOutput[j][k];
+		//for( int j=0; j <= hidden; j++ ) outputNeurons[k] += hiddenNeurons[j] * wHiddenOutput[j][k];
+		for( int j=0; j <= hidden; j++ ) outputNeurons[k] += hL.getNeuron(j) * wHiddenOutput[j][k];
 		
 		//set to result of sigmoid
 		outputNeurons[k] = activationFunction( outputNeurons[k] );
@@ -631,9 +607,7 @@ void createErrorGradients(void)
 	for ( int i=0; i <= output; i++ ) outputErrorGradients[i] = 0;
 }
 
-//This needs to be changed so that it can incremenent through the list of desired outputs.
-//Which it has been.
-void errorsAndGradients(inputLayer iL, int index)
+void errorsAndGradients(inputLayer iL, hiddenLayer hL, int index)
 {
 	//Creates deltas for all connections between hidden and output layer
 	for(int k = 0; k < output; k++)
@@ -645,7 +619,8 @@ void errorsAndGradients(inputLayer iL, int index)
 		for (int j = 0; j <= hidden; j++) 
 		{				
 			//calculate change in weight
-			deltaHiddenOutput[j][k] += learningRate * hiddenNeurons[j] * outputErrorGradients[k];
+			//deltaHiddenOutput[j][k] += learningRate * hiddenNeurons[j] * outputErrorGradients[k];
+			deltaHiddenOutput[j][k] += learningRate * hL.getNeuron(j) * outputErrorGradients[k];
 		}
 	}
 
@@ -660,7 +635,7 @@ void errorsAndGradients(inputLayer iL, int index)
 		{
 			weightedSum += wHiddenOutput[j][k] * outputErrorGradients[k];
 		}
-		hiddenErrorGradients[j] = hiddenNeurons[j] * ( 1 - hiddenNeurons[j] ) * weightedSum;
+		hiddenErrorGradients[j] =  hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum;
 
 		//for all nodes in input layer and bias neuron
 		//The less than or equal is what includes the bias neuron.
