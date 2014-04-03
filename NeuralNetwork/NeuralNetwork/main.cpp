@@ -3,6 +3,7 @@
 #include <math.h>
 //#include "Header.h"
 #include "Network.h"
+#include "Trainer.h"
 #include <fstream>
 #include <string>
 
@@ -26,12 +27,12 @@ double setError[inputDataLength];
 char clampedOutput[output];
 
 //change to weights
-double** deltaInputHidden;
-double** deltaHiddenOutput;
+//double** deltaInputHidden;
+//double** deltaHiddenOutput;
 
 //error gradients
-double* hiddenErrorGradients;
-double* outputErrorGradients;
+//double* hiddenErrorGradients;
+//double* outputErrorGradients;
 
 //prototypes
 void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL);
@@ -47,10 +48,10 @@ void calculateDesiredOutput(void);
 void checkOutputs(void);
 void calculateErrors(void);
 void createDeltaLists(void);
-void createErrorGradients(void);
-void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, int index);
-void checkDelta(void);
-void updateWeights(weights wil, weights who);
+void checkErrorGradients(backPropagate bP);
+void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, backPropagate bP, int index);
+void checkDelta(backPropagate bP);
+void updateWeights(weights wil, weights who, backPropagate bP);
 void getErrors(outputLayer oL, int index);
 void displayOutput(void);
 void writeCSV(void);
@@ -73,14 +74,18 @@ int main(void)
 
 	weights wInputHidden(testLayer, hLayer);
 	weights wHiddenOutput(hLayer, oLayer);
+	
+	backPropagate backProp(testLayer, hLayer, oLayer);
 
 	generateNetInputs();
 	generateNetInputsBits();
 	calculateDesiredOutput();
 
 	//Move on to these bits next.
-	createDeltaLists();
-	createErrorGradients();
+	//createDeltaLists();
+	//createErrorGradients();
+	
+	
 	
 
 	while (train == 'y')
@@ -114,11 +119,11 @@ int main(void)
 		calculateHiddenLayer(testLayer, hLayer, wInputHidden);
 		calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
 
-		errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, i);
+		errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, backProp, i);
 
 		getErrors(oLayer, i);
 
-		updateWeights(wInputHidden, wHiddenOutput);
+		updateWeights(wInputHidden, wHiddenOutput, backProp);
 	}
 
 	while (train2 == 'y')
@@ -457,44 +462,50 @@ void checkOutputs(void)
 	}
 }
 
+//Commented out
 void createDeltaLists(void)
 {
-	deltaInputHidden = new( double*[input + 1] );
-	for ( int i=0; i <= input; i++ ) 
-	{
-		deltaInputHidden[i] = new (double[hidden]);
-		for ( int j=0; j < hidden; j++ ) deltaInputHidden[i][j] = 0;		
-	}
+	//deltaInputHidden = new( double*[input + 1] );
+	//for ( int i=0; i <= input; i++ ) 
+	//{
+	//	deltaInputHidden[i] = new (double[hidden]);
+	//	for ( int j=0; j < hidden; j++ ) deltaInputHidden[i][j] = 0;		
+	//}
 
-	deltaHiddenOutput = new( double*[hidden + 1] );
-	for ( int i=0; i <= hidden; i++ ) 
-	{
-		deltaHiddenOutput[i] = new (double[output]);			
-		for ( int j=0; j < output; j++ ) deltaHiddenOutput[i][j] = 0;		
-	}
+	//deltaHiddenOutput = new( double*[hidden + 1] );
+	//for ( int i=0; i <= hidden; i++ ) 
+	//{
+	//	deltaHiddenOutput[i] = new (double[output]);			
+	//	for ( int j=0; j < output; j++ ) deltaHiddenOutput[i][j] = 0;		
+	//}
 }
 
+//Changed to include in backpropogation class, commented out
 void createErrorGradients(void)
 {
-	hiddenErrorGradients = new( double[hidden + 1] );
-	for ( int i=0; i <= hidden; i++ ) hiddenErrorGradients[i] = 0;
-	
-	outputErrorGradients = new( double[output + 1] );
-	for ( int i=0; i <= output; i++ ) outputErrorGradients[i] = 0;
+	//hiddenErrorGradients = new( double[hidden + 1] );
+	//for ( int i=0; i <= hidden; i++ ) hiddenErrorGradients[i] = 0;
+	//
+	//outputErrorGradients = new( double[output + 1] );
+	//for ( int i=0; i <= output; i++ ) outputErrorGradients[i] = 0;
 }
 
-void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, int index)
+//Change arguments and prototype and all refrences to hidden/outputerrorgradients
+void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, backPropagate bP, int index)
 {
 	for(int k = 0; k < output; k++)
 	{
-		outputErrorGradients[k] = oL.getNeuron(k)*(1-oL.getNeuron(k))*(desiredOutputBits[index][k] - oL.getNeuron(k));
+		//outputErrorGradients[k] = oL.getNeuron(k)*(1-oL.getNeuron(k))*(desiredOutputBits[index][k] - oL.getNeuron(k));
+		bP.setOutputErrorGradient(k, (oL.getNeuron(k)*(1-oL.getNeuron(k))*(desiredOutputBits[index][k] - oL.getNeuron(k))));
 		
 		//for all nodes in hidden layer and bias neuron
 		//The less than or equal includes the bias neuron
 		for (int j = 0; j <= hidden; j++) 
 		{				
 			//calculate change in weight
-			deltaHiddenOutput[j][k] += learningRate * hL.getNeuron(j) * outputErrorGradients[k];
+			//deltaHiddenOutput[j][k] += learningRate * hL.getNeuron(j) * outputErrorGradients[k];
+			//deltaHiddenOutput[j][k] += learningRate * hL.getNeuron(j) * bP.getOutputErrorGradient(k);
+			bP.incrementDeltaHiddenOutput(j, k, (learningRate * hL.getNeuron(j) * bP.getOutputErrorGradient(k)));
 		}
 	}
 
@@ -507,35 +518,44 @@ void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights 
 		double weightedSum = 0;
 		for( int k = 0; k < output; k++ ) 
 		{
-			weightedSum += who.getWeight(j,k) * outputErrorGradients[k];
+			//weightedSum += who.getWeight(j,k) * outputErrorGradients[k];
+			weightedSum += who.getWeight(j,k) * bP.getOutputErrorGradient(k);
 		}
-		hiddenErrorGradients[j] =  hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum;
+		
+		//hiddenErrorGradients[j] =  hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum;
+		bP.setHiddenErrorGradient(j, (hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum));
+
 
 		//for all nodes in input layer and bias neuron
 		//The less than or equal is what includes the bias neuron.
 		for (int i = 0; i <= input; i++)
 		{
 			//calculate change in weight 
-			deltaInputHidden[i][j] += learningRate * iL.getNeuron(i) * hiddenErrorGradients[j]; 
+			//deltaInputHidden[i][j] += learningRate * iL.getNeuron(i) * hiddenErrorGradients[j];
+			//deltaInputHidden[i][j] += learningRate * iL.getNeuron(i) * bP.getHiddenErrorGradient(j);
+			bP.incrementDeltaInputHidden(i, j, (learningRate * iL.getNeuron(i) * bP.getHiddenErrorGradient(j)));
 		}
 	}
 }
 
-void checkErrorGradients()
+//arguments and prototype
+void checkErrorGradients(backPropagate bP)
 {
 	for(int i = 0; i < output; i++)
 	{
-		cout << "Error gradient for output neuron " << i << " is: " << outputErrorGradients[i] << endl;
+		//cout << "Error gradient for output neuron " << i << " is: " << outputErrorGradients[i] << endl;
+		cout << "Error gradient for output neuron " << i << " is: " << bP.getOutputErrorGradient(i) << endl;
 	}
 }
 
-void checkDelta(void)
+void checkDelta(backPropagate bP)
 {
 	for(int i = 0; i < output; i++)
 	{
 		for(int j = 0; j < (hidden + 1); j++)
 		{
-			cout << "Deltas for HiddenOutput (" << i << ", " << j << ") is: " << deltaHiddenOutput[i][j] << endl;
+			//cout << "Deltas for HiddenOutput (" << i << ", " << j << ") is: " << deltaHiddenOutput[i][j] << endl;
+			cout << "Deltas for HiddenOutput (" << i << ", " << j << ") is: " << bP.getDeltaHiddenOutput(i,j) << endl;
 		}
 	}
 
@@ -543,14 +563,15 @@ void checkDelta(void)
 	{
 		for(int j = 0; j < (hidden + 1); j++)
 		{
-			cout << "Deltas for InputHidden (" << i << ", " << j << ") is: " << deltaInputHidden[i][j] << endl;
+			//cout << "Deltas for InputHidden (" << i << ", " << j << ") is: " << deltaInputHidden[i][j] << endl;
+			cout << "Deltas for InputHidden (" << i << ", " << j << ") is: " << bP.getDeltaInputHidden(i,j) << endl;
 		}
 	}
 
 
 }
 
-void updateWeights(weights wil, weights who)
+void updateWeights(weights wil, weights who, backPropagate bP)
 {
 	//input -> hidden weights
 	//--------------------------------------------------------------------------------------------------------
@@ -559,10 +580,12 @@ void updateWeights(weights wil, weights who)
 		for (int j = 0; j < hidden; j++) 
 		{
 			//update weight
-			wil.setWeight(i,j,(wil.getWeight(i,j) + deltaInputHidden[i][j]));
-			
+			//wil.setWeight(i,j,(wil.getWeight(i,j) + deltaInputHidden[i][j]));
+			wil.setWeight(i,j,(wil.getWeight(i,j) + bP.getDeltaInputHidden(i,j)));
+
 			//clear delta only if using batch (previous delta is needed for momentum
-			deltaInputHidden[i][j] = 0;				
+			//deltaInputHidden[i][j] = 0;
+			bP.setDeltaInputHidden(i,j,0);
 		}
 	}
 	
@@ -573,10 +596,12 @@ void updateWeights(weights wil, weights who)
 		for (int k = 0; k < output; k++) 
 		{					
 			//update weight
-			who.incrementWeight(j,k, deltaHiddenOutput[j][k]);
+			//who.incrementWeight(j,k, deltaHiddenOutput[j][k]);
+			who.incrementWeight(j,k, bP.getDeltaHiddenOutput(j,k));
 			
 			//clear delta only if using batch (previous delta is needed for momentum)
-			deltaHiddenOutput[j][k] = 0;
+			//deltaHiddenOutput[j][k] = 0;
+			bP.setDeltaHiddenOutput(j,k,0);
 		}
 	}
 }

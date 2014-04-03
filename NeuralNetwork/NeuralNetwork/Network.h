@@ -1,3 +1,6 @@
+#ifndef NETWORK_H
+#define NETWORK_H
+
 class inputLayer
 {
 private:
@@ -66,3 +69,5 @@ public:
 
 	void initialiseWeights(int n);
 };
+
+#endif
