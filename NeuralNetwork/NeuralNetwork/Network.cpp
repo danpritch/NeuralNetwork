@@ -78,3 +78,61 @@ int outputLayer::getNumOutput(void)
 {
 	return numOutput;
 }
+
+//Functions for the weights class.
+
+weights::weights(inputLayer iL, hiddenLayer hL)
+{
+	numLayerOne = iL.getInputs();
+	numLayerTwo = hL.getNumHidden();
+	weightArray = new(double*[numLayerOne + 1]);
+	for (int i = 0; i <= numLayerOne; i++)
+	{
+		weightArray[i] = new(double[numLayerTwo + 1]);
+		for (int j = 0; j <= numLayerTwo; j++) weightArray[i][j] = 0;
+	}
+
+	//Weights need to be initialise here.
+	initialiseWeights(numLayerOne);
+}
+
+weights::weights(hiddenLayer hL, outputLayer oL)
+{
+	numLayerOne = hL.getNumHidden();
+	numLayerTwo = oL.getNumOutput();
+	weightArray = new(double*[numLayerOne + 1]);
+	for (int i = 0; i <= numLayerOne; i++)
+	{
+		weightArray[i] = new(double[numLayerTwo + 1]);
+		for (int j = 0; j <= numLayerTwo; j++) weightArray[i][j] = 0;
+	}
+	initialiseWeights(numLayerTwo);
+}
+
+double weights::getWeight(int layerOne , int layerTwo)
+{
+	return weightArray[layerOne][layerTwo];
+}
+
+void weights::setWeight(int layerOne , int layerTwo, double value)
+{
+	weightArray[layerOne][layerTwo] = value;
+}
+
+void weights::incrementWeight(int layerOne , int layerTwo, double value)
+{
+	weightArray[layerOne][layerTwo] += value;
+}
+
+void weights::initialiseWeights(int n)
+{
+	double weightRand = 1/sqrt(double(n));
+	
+	for(int i = 0; i <= numLayerOne; i++)
+	{		
+		for(int j = 0; j < numLayerTwo; j++) 
+		{
+			weightArray[i][j] = ( ( (double)(rand()%100)+1)/100  * 2 * weightRand ) - weightRand;	
+		}
+	}
+}

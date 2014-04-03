@@ -60,16 +60,16 @@ void checkInputData(void);
 void generateNetInputsBits(void);
 void passInputData(inputLayer iL, double data[][input], int index);
 double activationFunction(double x);
-void calculateHiddenLayer(inputLayer iL, hiddenLayer hL);
-void calculateOutputLayer(hiddenLayer hL, outputLayer oL);
+void calculateHiddenLayer(inputLayer iL, hiddenLayer hL, weights wil);
+void calculateOutputLayer(hiddenLayer hL, outputLayer oL, weights who);
 void calculateDesiredOutput(void);
 void checkOutputs(void);
 void calculateErrors(void);
 void createDeltaLists(void);
 void createErrorGradients(void);
-void errorsAndGradients(inputLayer iL, hiddenLayer hL, outputLayer oL, int index);
+void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, int index);
 void checkDelta(void);
-void updateWeights(void);
+void updateWeights(weights wil, weights who);
 void initialiseNetwork(void);
 void getErrors(outputLayer oL, int index);
 void displayOutput(void);
@@ -89,14 +89,27 @@ int main(void)
 	inputLayer testLayer(input);
 	hiddenLayer hLayer(hidden);
 	outputLayer oLayer(output);
+
+	//The weight classes have been initialised here. Now i need to sort out the addressing in the rest of the program.
+	weights wInputHidden(testLayer, hLayer);
+	weights wHiddenOutput(hLayer, oLayer);
+
+
 	generateNetInputs();
 	generateNetInputsBits();
 	calculateDesiredOutput();
 	//createLayers(input, hidden, output);
-	createWeights(input, hidden, output);
+
+	//This create weights part can be gradually phased out now
+	//createWeights(input, hidden, output);
+
+	//As can this initialise weights, as its included in the the weights class
+	//initialiseWeights();
+
+	//Move on to these bits next.
 	createDeltaLists();
 	createErrorGradients();
-	initialiseWeights();
+	
 
 	while (train == 'y')
 	{
@@ -118,9 +131,13 @@ int main(void)
 			testLayer.setNeuron(1, int(charIn[1]) - 48);
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
 			
+			//These need changed to accomodate the new weight class
+			//calculateHiddenLayer(testLayer, hLayer);
+			//calculateOutputLayer(hLayer, oLayer);
+			//CHANGED
+			calculateHiddenLayer(testLayer, hLayer, wInputHidden);
+			calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
 
-			calculateHiddenLayer(testLayer, hLayer);
-			calculateOutputLayer(hLayer, oLayer);
 			clampOutputs(oLayer);
 
 			displayOutputNeurons(oLayer);
@@ -132,12 +149,25 @@ int main(void)
 	{
 		//Needs changed!!!! Or maybe it doesnt, passInputData can probably do it.
 		passInputData(testLayer, netInputsBits, i);	
-		calculateHiddenLayer(testLayer, hLayer);
-		calculateOutputLayer(hLayer, oLayer);
+
+		//As does this part to include the new weight class
+		//calculateHiddenLayer(testLayer, hLayer);
+		//calculateOutputLayer(hLayer, oLayer);
+		//CHANGED
+		calculateHiddenLayer(testLayer, hLayer, wInputHidden);
+		calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
+
+
 		//errorsAndGradients(i);
-		errorsAndGradients(testLayer, hLayer, oLayer, i);
+		//errorsAndGradients(testLayer, hLayer, oLayer, i);
+		errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, i);
+
 		getErrors(oLayer, i);
-		updateWeights();
+
+		//As does this to include the new weights class
+		//updateWeights();
+		//CHANGED
+		updateWeights(wInputHidden, wHiddenOutput);
 	}
 
 	while (train2 == 'y')
@@ -156,8 +186,13 @@ int main(void)
 			testLayer.setNeuron(1, int(charIn[1]) - 48);
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
 
-			calculateHiddenLayer(testLayer, hLayer);
-			calculateOutputLayer(hLayer, oLayer);
+			//This part need changed as well to include the new weights class
+			//calculateHiddenLayer(testLayer, hLayer);
+			//calculateOutputLayer(hLayer, oLayer);
+			//CHANGED
+			calculateHiddenLayer(testLayer, hLayer, wInputHidden);
+			calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
+
 			clampOutputs(oLayer);
 
 			displayOutputNeurons(oLayer);
@@ -207,6 +242,7 @@ void displayOutputNeurons(outputLayer oL)
 	cout << fixed << "Output '7' = " << oL.getNeuron(6) << "			Clamped output is: " << clampedOutput[6] << endl;
 }
 
+//This function is all commented out
 void trainNetwork(void)
 {
 	//for (int i = 0; i < trainingDataLength; i++)
@@ -300,6 +336,7 @@ void createLayers(int input, int hidden, int output)
 	//for ( int i=0; i < output; i++ ) outputNeurons[i] = 0;
 }
 
+//has been replaced by classes
 void createWeights(int input, int hidden, int output)
 {
 	//create weights between input and hidden layer
@@ -307,25 +344,24 @@ void createWeights(int input, int hidden, int output)
 	//Create an array of arrays, 4 arrays containing 8 arrays each
 
 	//Needs changed!!!! Was going to change the 'input' part to getNumInputs, but not necessary just now
-	wInputHidden = new( double*[input + 1] );						
-	for ( int i=0; i <= input; i++ ) 
-	{
-		wInputHidden[i] = new (double[hidden]);
+	//wInputHidden = new( double*[input + 1] );						
+	//for ( int i=0; i <= input; i++ ) 
+	//{
+	//	wInputHidden[i] = new (double[hidden]);
 
-		//Each element has initial value of 0
-		for ( int j=0; j < hidden; j++ ) wInputHidden[i][j] = 0;		
-	}
-
-	//create weights between hidden and output layer
-	wHiddenOutput = new( double*[hidden + 1] );
-	for ( int i=0; i <= hidden; i++ ) 
-	{
-		wHiddenOutput[i] = new (double[output]);			
-		for ( int j=0; j < output; j++ ) wHiddenOutput[i][j] = 0;		
-	}
+	//	//Each element has initial value of 0
+	//	for ( int j=0; j < hidden; j++ ) wInputHidden[i][j] = 0;		
+	//}
+	////create weights between hidden and output layer
+	//wHiddenOutput = new( double*[hidden + 1] );
+	//for ( int i=0; i <= hidden; i++ ) 
+	//{
+	//	wHiddenOutput[i] = new (double[output]);			
+	//	for ( int j=0; j < output; j++ ) wHiddenOutput[i][j] = 0;		
+	//}
 }
 
-//Change prototype
+
 void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL)
 {
 	//Check input layer
@@ -379,29 +415,30 @@ void genRand(void)
 	}
 }
 
+//has been replace by classes, all commented out
 void initialiseWeights(void)
 {
-	double inputHiddenRand = 1/sqrt(double(input));
-	double hiddenOutputRand = 1/sqrt(double(hidden));
+	//double inputHiddenRand = 1/sqrt(double(input));
+	//double hiddenOutputRand = 1/sqrt(double(hidden));
 
-	for(int i = 0; i <= input; i++)
-	{		
-		for(int j = 0; j < hidden; j++) 
-		{
-			//set weights to random values
-			//wInputHidden[i][j] = double( ( ( (rand()%101) /100)*2*inputHiddenRand) - inputHiddenRand);
-			wInputHidden[i][j] = ( ( (double)(rand()%100)+1)/100  * 2 * inputHiddenRand ) - inputHiddenRand;	
-		}
-	}
+	//for(int i = 0; i <= input; i++)
+	//{		
+	//	for(int j = 0; j < hidden; j++) 
+	//	{
+	//		//set weights to random values
+	//		//wInputHidden[i][j] = double( ( ( (rand()%101) /100)*2*inputHiddenRand) - inputHiddenRand);
+	//		wInputHidden[i][j] = ( ( (double)(rand()%100)+1)/100  * 2 * inputHiddenRand ) - inputHiddenRand;	
+	//	}
+	//}
 
-	for(int i = 0; i <= hidden; i++)
-	{		
-		for(int j = 0; j < output; j++) 
-		{
-			//set weights to random values
-			wHiddenOutput[i][j] = ( ( (double)(rand()%100)+1)/100 * 2 * hiddenOutputRand ) - hiddenOutputRand;
-		}
-	}
+	//for(int i = 0; i <= hidden; i++)
+	//{		
+	//	for(int j = 0; j < output; j++) 
+	//	{
+	//		//set weights to random values
+	//		wHiddenOutput[i][j] = ( ( (double)(rand()%100)+1)/100 * 2 * hiddenOutputRand ) - hiddenOutputRand;
+	//	}
+	//}
 }
 
 void generateNetInputs(void)
@@ -454,7 +491,6 @@ void checkInputData(void)
 	}
 }
 
-//Well i clearly prepared well for this later on.
 void passInputData(inputLayer iL, double data[][input], int index)
 {
 	//set input neurons to input values
@@ -475,7 +511,10 @@ double activationFunction(double x)
 	return 1/(1+exp(-x));
 }	
 
-void calculateHiddenLayer(inputLayer iL, hiddenLayer hL)
+//CAHNGED
+//This need to be changed to use the new weight class
+//Need to change the arguments to the function and reference to wInputHidden
+void calculateHiddenLayer(inputLayer iL, hiddenLayer hL, weights wil)
 {
 	for(int j=0; j < hidden; j++)
 	{
@@ -488,7 +527,8 @@ void calculateHiddenLayer(inputLayer iL, hiddenLayer hL)
 		//Needs changed!!!! Changed
 		for( int i=0; i <= input; i++ )// hiddenNeurons[j] += iL.getNeuron(i) * wInputHidden[i][j];
 		{
-			hL.setNeuron(j, (hL.getNeuron(j) + (iL.getNeuron(i) * wInputHidden[i][j])));
+			//hL.setNeuron(j, (hL.getNeuron(j) + (iL.getNeuron(i) * wInputHidden[i][j])));
+			hL.setNeuron(j, (hL.getNeuron(j) + (iL.getNeuron(i) * wil.getWeight(i,j))));
 		}
 
 		
@@ -498,7 +538,9 @@ void calculateHiddenLayer(inputLayer iL, hiddenLayer hL)
 	}
 }
 
-void calculateOutputLayer(hiddenLayer hL, outputLayer oL)
+//CHANGED
+//The same goes for this function, change the arguments to include the weight class then change the wHiddenOuput
+void calculateOutputLayer(hiddenLayer hL, outputLayer oL, weights who)
 {
 	for(int k=0; k < output; k++)
 	{
@@ -509,7 +551,11 @@ void calculateOutputLayer(hiddenLayer hL, outputLayer oL)
 		//get weighted sum of pattern and bias neuron
 		//for( int j=0; j <= hidden; j++ ) outputNeurons[k] += hiddenNeurons[j] * wHiddenOutput[j][k];
 		//for( int j=0; j <= hidden; j++ ) outputNeurons[k] += hL.getNeuron(j) * wHiddenOutput[j][k];
-		for( int j=0; j <= hidden; j++ ) oL.setNeuron(k, (oL.getNeuron(k) + (hL.getNeuron(j) * wHiddenOutput[j][k])));
+		for( int j=0; j <= hidden; j++ ) 
+		{
+			//oL.setNeuron(k, (oL.getNeuron(k) + (hL.getNeuron(j) * wHiddenOutput[j][k])));
+			oL.setNeuron(k, (oL.getNeuron(k) + (hL.getNeuron(j) * who.getWeight(j,k))));
+		}
 		
 		//set to result of sigmoid
 		//outputNeurons[k] = activationFunction( outputNeurons[k] );
@@ -617,7 +663,8 @@ void createErrorGradients(void)
 	for ( int i=0; i <= output; i++ ) outputErrorGradients[i] = 0;
 }
 
-void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL,int index)
+//I knew there was something in here that needed changing, need to change argument, prototype and wHiddenOutput reference
+void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, int index)
 {
 	//Creates deltas for all connections between hidden and output layer
 	for(int k = 0; k < output; k++)
@@ -645,7 +692,8 @@ void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL,int index
 		double weightedSum = 0;
 		for( int k = 0; k < output; k++ ) 
 		{
-			weightedSum += wHiddenOutput[j][k] * outputErrorGradients[k];
+			//weightedSum += wHiddenOutput[j][k] * outputErrorGradients[k];
+			weightedSum += who.getWeight(j,k) * outputErrorGradients[k];
 		}
 		hiddenErrorGradients[j] =  hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum;
 
@@ -690,7 +738,9 @@ void checkDelta(void)
 
 }
 
-void updateWeights(void)
+//CHANGED
+//Needs changed, add weight class to argument then the weight refrences.
+void updateWeights(weights wil, weights who)
 {
 	//input -> hidden weights
 	//--------------------------------------------------------------------------------------------------------
@@ -699,7 +749,8 @@ void updateWeights(void)
 		for (int j = 0; j < hidden; j++) 
 		{
 			//update weight
-			wInputHidden[i][j] += deltaInputHidden[i][j];	
+			//wInputHidden[i][j] += deltaInputHidden[i][j];
+			wil.setWeight(i,j,(wil.getWeight(i,j) + deltaInputHidden[i][j]));
 			
 			//clear delta only if using batch (previous delta is needed for momentum
 			deltaInputHidden[i][j] = 0;				
@@ -713,7 +764,11 @@ void updateWeights(void)
 		for (int k = 0; k < output; k++) 
 		{					
 			//update weight
-			wHiddenOutput[j][k] += deltaHiddenOutput[j][k];
+			//wHiddenOutput[j][k] += deltaHiddenOutput[j][k];
+
+			//THIS IS CAUSING A PROBLEM
+			//who.setWeight(j,k,(who.getWeight(j,k) + deltaInputHidden[j][k]));
+			who.incrementWeight(j,k, deltaHiddenOutput[j][k]);
 			
 			//clear delta only if using batch (previous delta is needed for momentum)
 			deltaHiddenOutput[j][k] = 0;

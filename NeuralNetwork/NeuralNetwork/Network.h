@@ -45,3 +45,24 @@ public:
 
 	int getNumOutput(void);
 };
+
+class weights
+{
+private:
+	int numLayerOne;
+	int numLayerTwo;
+	double** weightArray;
+
+public:
+	weights(inputLayer iL, hiddenLayer hL);
+
+	weights(hiddenLayer hL, outputLayer oL);
+
+	double getWeight(int layerOne , int layerTwo);
+
+	void setWeight(int layerOne , int layerTwo, double value);
+
+	void weights::incrementWeight(int layerOne , int layerTwo, double value);
+
+	void initialiseWeights(int n);
+};
