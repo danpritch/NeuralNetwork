@@ -24,6 +24,9 @@ private:
 	//Training output
 	double** trainingOutput;
 
+	//Set error
+	double* setError;
+
 	int numInput;
 	int numHidden;
 	int numOutput;
@@ -33,6 +36,8 @@ public:
 
 	//Need variables more desciriptive than i and j but i'll change that later
 	//HiddenErrorGradients
+	void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, double learningRate, int index);
+
 	double getTrainingOutput(int i, int j);
 
 	void fillTrainingOutput(int i, int j, double value);

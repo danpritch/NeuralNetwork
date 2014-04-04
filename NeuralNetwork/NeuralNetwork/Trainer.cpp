@@ -43,14 +43,64 @@ void backPropagate::initialise(int length, int width)
 		trainingOutput[i] = new(double[width]);
 		for (int j = 0; j < width; j++) trainingOutput[i][j] = 0;
 	}
+
+	//setError setup
+	setError = new(double[length]);
+	for (int i = 0; i < length; i++) setError[i] = 0;
 }
 
 //Gradients
+void backPropagate::errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, double learningRate, int index)
+{
+	for(int k = 0; k < oL.getNumOutput(); k++)
+	{
+		setOutputErrorGradient(k, (oL.getNeuron(k)*(1-oL.getNeuron(k))*(trainingOutput[index][k] - oL.getNeuron(k))));
+		
+		//for all nodes in hidden layer and bias neuron
+		//The less than or equal includes the bias neuron
+		for (int j = 0; j <= hL.getNumHidden(); j++) 
+		{				
+			//calculate change in weight
+			incrementDeltaHiddenOutput(j, k, (learningRate * hL.getNeuron(j) * getOutputErrorGradient(k)));
+		}
+	}
+
+	//create deltas for all connections between input and hidden layer
+	for (int j = 0; j < hL.getNumHidden(); j++)
+	{
+		//get error gradient for every hidden node
+		//first i need to get the sum of the hidden neuron weights multiplied by each of the error gradients. 
+		//so i can find the error in each hidden neuron.
+		double weightedSum = 0;
+		for( int k = 0; k < oL.getNumOutput(); k++ ) 
+		{
+			weightedSum += who.getWeight(j,k) * getOutputErrorGradient(k);
+		}
+		
+		setHiddenErrorGradient(j, (hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum));
+
+		//for all nodes in input layer and bias neuron
+		//The less than or equal is what includes the bias neuron.
+		for (int i = 0; i <= iL.getInputs(); i++)
+		{
+			//calculate change in weight 
+			incrementDeltaInputHidden(i, j, (learningRate * iL.getNeuron(i) * getHiddenErrorGradient(j)));
+		}
+	}
+
+	//going to include the setError code here just to see what happens, but i think itll work.
+	for(int k = 0; k < oL.getNumOutput(); k++)
+	{
+		//setError[index]  += outputNeurons[k] - desiredOutputBits[index][k];
+		setError[index]  += oL.getNeuron(k) - trainingOutput[index][k];
+	}
+	setError[index] = setError[index]/oL.getNumOutput();
+}
+
 double backPropagate::getTrainingOutput(int i, int j)
 {
 	return trainingOutput[i][j];
 }
-
 
 void backPropagate::fillTrainingOutput(int i, int j, double value)
 {

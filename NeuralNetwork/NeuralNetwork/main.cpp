@@ -14,7 +14,7 @@ const int input = 3;
 const int hidden = 7;
 const int output = 7;
 const int inputDataLength = 5000;
-const int trainingDataLength = 4950;
+const int trainingDataLength = 5000;
 
 //variables
 double learningRate = 0.9;
@@ -26,7 +26,6 @@ double netInputsBits[inputDataLength][input];
 //This is the array i need to pass to the training class
 double desiredOutputBits[inputDataLength][output];
 
-double setError[inputDataLength];
 char clampedOutput[output];
 
 //prototypes
@@ -40,9 +39,7 @@ void calculateDesiredOutput(void);
 void checkOutputs(void);
 void calculateErrors(void);
 void checkErrorGradients(backPropagate bP);
-void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, backPropagate bP, int index);
 void checkDelta(backPropagate bP);
-void getErrors(outputLayer oL, int index);
 void displayOutput(void);
 void writeCSV(void);
 void modulus(void);
@@ -53,8 +50,6 @@ void clampOutputs(outputLayer oL);
 
 int main(void)
 {
-	double check = 0;
-
 	char train = 'y';
 	char train2 = 'y';
 	char charIn[4];
@@ -78,13 +73,6 @@ int main(void)
 	{
 		backProp.fillTrainingOutput(i,j,desiredOutputBits[i][j]);
 	}
-
-	for(int i = 0; i < trainingDataLength; i++) for(int j = 0; j < output; j++)
-	{
-		check += (desiredOutputBits[i][j] - backProp.getTrainingOutput(i,j));
-	}
-
-	cout << "The difference between the two data sets is: " << check << endl;
 
 	while (train == 'y')
 	{
@@ -122,9 +110,9 @@ int main(void)
 		//the training data could be provided by a data reader class.
 		//so the training class could take a copy of the network (layers and weights) and data. do the training, and then write the trained weight values to the network.
 		//essentially cloning the network, then training it.
-		errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, backProp, i);
+		backProp.errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, learningRate, i);
 		
-		getErrors(oLayer, i);
+		//getErrors(oLayer, i);
 
 		wInputHidden.update(backProp);
 		wHiddenOutput.update(backProp);
@@ -155,8 +143,8 @@ int main(void)
 
 	//checkNet();
 	//displayOutput();
-	modulus();
-	writeCSV();
+	//modulus();
+	//writeCSV();
 
 	cout << "Press any key to exit";
 	cin.get();
@@ -198,45 +186,35 @@ void displayOutputNeurons(outputLayer oL)
 
 void modulus(void)
 {
-	for(int i = 0; i < trainingDataLength; i++)
-	{
-		if(setError[i] < 0)
-		{
-			setError[i] = setError[i]*-1;
-		}
-	}
+	//for(int i = 0; i < trainingDataLength; i++)
+	//{
+	//	if(setError[i] < 0)
+	//	{
+	//		setError[i] = setError[i]*-1;
+	//	}
+	//}
 }
 
+//Write CSV will no longer work as setError is contained in the trainer class
 void writeCSV(void)
 {
-	ofstream MyFile;
-	MyFile.open("Ouput.csv"); //, ios::out | ios::ate | ios::app);
+	//ofstream MyFile;
+	//MyFile.open("Ouput.csv"); //, ios::out | ios::ate | ios::app);
 
-	for(int i = 0; i < trainingDataLength; i++)
-	{
-		MyFile << setError[i];
-		MyFile << ',';
-	}
-	MyFile.close();
+	//for(int i = 0; i < trainingDataLength; i++)
+	//{
+	//	MyFile << setError[i];
+	//	MyFile << ',';
+	//}
+	//MyFile.close();
 }
 
 void displayOutput(void)
 {
 	for(int i = 0; i < trainingDataLength; i++)
 	{
-		cout << i << ". Average difference = " << setError[i] << endl;
+		//cout << i << ". Average difference = " << setError[i] << endl;
 	}		
-}
-
-void getErrors(outputLayer oL, int index)
-{
-	setError[index] = 0;
-	for(int k = 0; k < output; k++)
-	{
-		//setError[index]  += outputNeurons[k] - desiredOutputBits[index][k];
-		setError[index]  += oL.getNeuron(k) - desiredOutputBits[index][k];
-	}
-	setError[index] = setError[index]/output;
 }
 
 void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL, weights wil, weights who)
@@ -421,46 +399,6 @@ void checkOutputs(void)
 		cout << "Input: " << int(netInputs[i]) << "     Outputs: " << desiredOutputBits[i][6] << desiredOutputBits[i][5] << desiredOutputBits[i][4] <<
 			desiredOutputBits[i][3] << desiredOutputBits[i][2] << desiredOutputBits[i][1] << desiredOutputBits[i][0] << endl;
 		
-	}
-}
-
-//
-void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, backPropagate bP, int index)
-{
-	for(int k = 0; k < output; k++)
-	{
-		bP.setOutputErrorGradient(k, (oL.getNeuron(k)*(1-oL.getNeuron(k))*(desiredOutputBits[index][k] - oL.getNeuron(k))));
-		
-		//for all nodes in hidden layer and bias neuron
-		//The less than or equal includes the bias neuron
-		for (int j = 0; j <= hidden; j++) 
-		{				
-			//calculate change in weight
-			bP.incrementDeltaHiddenOutput(j, k, (learningRate * hL.getNeuron(j) * bP.getOutputErrorGradient(k)));
-		}
-	}
-
-	//create deltas for all connections between input and hidden layer
-	for (int j = 0; j < hidden; j++)
-	{
-		//get error gradient for every hidden node
-		//first i need to get the sum of the hidden neuron weights multiplied by each of the error gradients. 
-		//so i can find the error in each hidden neuron.
-		double weightedSum = 0;
-		for( int k = 0; k < output; k++ ) 
-		{
-			weightedSum += who.getWeight(j,k) * bP.getOutputErrorGradient(k);
-		}
-		
-		bP.setHiddenErrorGradient(j, (hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum));
-
-		//for all nodes in input layer and bias neuron
-		//The less than or equal is what includes the bias neuron.
-		for (int i = 0; i <= input; i++)
-		{
-			//calculate change in weight 
-			bP.incrementDeltaInputHidden(i, j, (learningRate * iL.getNeuron(i) * bP.getHiddenErrorGradient(j)));
-		}
 	}
 }
 
