@@ -26,14 +26,6 @@ double desiredOutputBits[inputDataLength][output];
 double setError[inputDataLength];
 char clampedOutput[output];
 
-//change to weights
-//double** deltaInputHidden;
-//double** deltaHiddenOutput;
-
-//error gradients
-//double* hiddenErrorGradients;
-//double* outputErrorGradients;
-
 //prototypes
 void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL);
 void genRand(void);
@@ -41,13 +33,9 @@ void generateNetInputs(void);
 void checkInputData(void);
 void generateNetInputsBits(void);
 void passInputData(inputLayer iL, double data[][input], int index);
-double activationFunction(double x);
-void calculateHiddenLayer(inputLayer iL, hiddenLayer hL, weights wil);
-void calculateOutputLayer(hiddenLayer hL, outputLayer oL, weights who);
 void calculateDesiredOutput(void);
 void checkOutputs(void);
 void calculateErrors(void);
-void createDeltaLists(void);
 void checkErrorGradients(backPropagate bP);
 void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, backPropagate bP, int index);
 void checkDelta(backPropagate bP);
@@ -81,13 +69,6 @@ int main(void)
 	generateNetInputsBits();
 	calculateDesiredOutput();
 
-	//Move on to these bits next.
-	//createDeltaLists();
-	//createErrorGradients();
-	
-	
-	
-
 	while (train == 'y')
 	{
 		cout << "Would you like to test the untrained network? [y/n]: ";
@@ -102,11 +83,11 @@ int main(void)
 			testLayer.setNeuron(1, int(charIn[1]) - 48);
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
 			
-			calculateHiddenLayer(testLayer, hLayer, wInputHidden);
-			calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
-
+			//calculateHiddenLayer(testLayer, hLayer, wInputHidden);
+			hLayer.calculate(testLayer, wInputHidden);
+			oLayer.calculate(hLayer, wHiddenOutput);
+			//calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
 			clampOutputs(oLayer);
-
 			displayOutputNeurons(oLayer);
 		}
 	}
@@ -115,14 +96,13 @@ int main(void)
 	for (int i = 0; i < trainingDataLength; i++)
 	{
 		passInputData(testLayer, netInputsBits, i);	
-
-		calculateHiddenLayer(testLayer, hLayer, wInputHidden);
-		calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
+		//calculateHiddenLayer(testLayer, hLayer, wInputHidden);
+		//calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
+		hLayer.calculate(testLayer, wInputHidden);
+		oLayer.calculate(hLayer, wHiddenOutput);
 
 		errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, backProp, i);
-
 		getErrors(oLayer, i);
-
 		updateWeights(wInputHidden, wHiddenOutput, backProp);
 	}
 
@@ -140,8 +120,10 @@ int main(void)
 			testLayer.setNeuron(1, int(charIn[1]) - 48);
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
 
-			calculateHiddenLayer(testLayer, hLayer, wInputHidden);
-			calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
+			//calculateHiddenLayer(testLayer, hLayer, wInputHidden);
+			//calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
+			hLayer.calculate(testLayer, wInputHidden);
+			oLayer.calculate(hLayer, wHiddenOutput);
 
 			clampOutputs(oLayer);
 
@@ -346,48 +328,6 @@ void passInputData(inputLayer iL, double data[][input], int index)
 	}
 }
 
-double activationFunction(double x)
-{
-	//sigmoid function
-	return 1/(1+exp(-x));
-}	
-
-void calculateHiddenLayer(inputLayer iL, hiddenLayer hL, weights wil)
-{
-	for(int j=0; j < hidden; j++)
-	{
-		//clear value
-		hL.setNeuron(j, 0);
-		
-		//get weighted sum of pattern and bias neuron
-		for( int i=0; i <= input; i++ )
-		{
-			hL.setNeuron(j, (hL.getNeuron(j) + (iL.getNeuron(i) * wil.getWeight(i,j))));
-		}
-		
-		//set to result of sigmoid
-		hL.setNeuron(j, activationFunction(hL.getNeuron(j)));
-	}
-}
-
-void calculateOutputLayer(hiddenLayer hL, outputLayer oL, weights who)
-{
-	for(int k=0; k < output; k++)
-	{
-		//clear value
-		oL.setNeuron(k, 0);
-		
-		//get weighted sum of pattern and bias neuron
-		for( int j=0; j <= hidden; j++ ) 
-		{
-			oL.setNeuron(k, (oL.getNeuron(k) + (hL.getNeuron(j) * who.getWeight(j,k))));
-		}
-		
-		//set to result of sigmoid
-		oL.setNeuron(k, activationFunction(oL.getNeuron(k)));
-	}
-}
-
 void calculateDesiredOutput(void)
 {
 	for(int i = 0; i < inputDataLength; i++)
@@ -462,40 +402,10 @@ void checkOutputs(void)
 	}
 }
 
-//Commented out
-void createDeltaLists(void)
-{
-	//deltaInputHidden = new( double*[input + 1] );
-	//for ( int i=0; i <= input; i++ ) 
-	//{
-	//	deltaInputHidden[i] = new (double[hidden]);
-	//	for ( int j=0; j < hidden; j++ ) deltaInputHidden[i][j] = 0;		
-	//}
-
-	//deltaHiddenOutput = new( double*[hidden + 1] );
-	//for ( int i=0; i <= hidden; i++ ) 
-	//{
-	//	deltaHiddenOutput[i] = new (double[output]);			
-	//	for ( int j=0; j < output; j++ ) deltaHiddenOutput[i][j] = 0;		
-	//}
-}
-
-//Changed to include in backpropogation class, commented out
-void createErrorGradients(void)
-{
-	//hiddenErrorGradients = new( double[hidden + 1] );
-	//for ( int i=0; i <= hidden; i++ ) hiddenErrorGradients[i] = 0;
-	//
-	//outputErrorGradients = new( double[output + 1] );
-	//for ( int i=0; i <= output; i++ ) outputErrorGradients[i] = 0;
-}
-
-//Change arguments and prototype and all refrences to hidden/outputerrorgradients
 void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, backPropagate bP, int index)
 {
 	for(int k = 0; k < output; k++)
 	{
-		//outputErrorGradients[k] = oL.getNeuron(k)*(1-oL.getNeuron(k))*(desiredOutputBits[index][k] - oL.getNeuron(k));
 		bP.setOutputErrorGradient(k, (oL.getNeuron(k)*(1-oL.getNeuron(k))*(desiredOutputBits[index][k] - oL.getNeuron(k))));
 		
 		//for all nodes in hidden layer and bias neuron
@@ -503,8 +413,6 @@ void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights 
 		for (int j = 0; j <= hidden; j++) 
 		{				
 			//calculate change in weight
-			//deltaHiddenOutput[j][k] += learningRate * hL.getNeuron(j) * outputErrorGradients[k];
-			//deltaHiddenOutput[j][k] += learningRate * hL.getNeuron(j) * bP.getOutputErrorGradient(k);
 			bP.incrementDeltaHiddenOutput(j, k, (learningRate * hL.getNeuron(j) * bP.getOutputErrorGradient(k)));
 		}
 	}
@@ -518,21 +426,16 @@ void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights 
 		double weightedSum = 0;
 		for( int k = 0; k < output; k++ ) 
 		{
-			//weightedSum += who.getWeight(j,k) * outputErrorGradients[k];
 			weightedSum += who.getWeight(j,k) * bP.getOutputErrorGradient(k);
 		}
 		
-		//hiddenErrorGradients[j] =  hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum;
 		bP.setHiddenErrorGradient(j, (hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum));
-
 
 		//for all nodes in input layer and bias neuron
 		//The less than or equal is what includes the bias neuron.
 		for (int i = 0; i <= input; i++)
 		{
 			//calculate change in weight 
-			//deltaInputHidden[i][j] += learningRate * iL.getNeuron(i) * hiddenErrorGradients[j];
-			//deltaInputHidden[i][j] += learningRate * iL.getNeuron(i) * bP.getHiddenErrorGradient(j);
 			bP.incrementDeltaInputHidden(i, j, (learningRate * iL.getNeuron(i) * bP.getHiddenErrorGradient(j)));
 		}
 	}

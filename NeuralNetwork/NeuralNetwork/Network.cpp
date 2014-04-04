@@ -53,6 +53,33 @@ int hiddenLayer::getNumHidden(void)
 	return numHidden;
 }
 
+//Added this
+void hiddenLayer::calculate(inputLayer iL, weights wil)
+{
+	for(int j=0; j < numHidden; j++)
+	{
+		//clear value
+		setNeuron(j, 0);
+		
+		//get weighted sum of pattern and bias neuron
+		for( int i=0; i <= iL.getInputs(); i++ )
+		{
+			setNeuron(j, (getNeuron(j) + (iL.getNeuron(i) * wil.getWeight(i,j))));
+		}
+		
+		//set to result of sigmoid
+		setNeuron(j, activationFunction(getNeuron(j)));
+	}
+}
+
+//Added this
+double hiddenLayer::activationFunction(double x)
+{
+	//sigmoid function
+	return 1/(1+exp(-x));
+}
+
+
 //Functions for output layer class
 
 outputLayer::outputLayer(int n)
@@ -79,7 +106,31 @@ int outputLayer::getNumOutput(void)
 	return numOutput;
 }
 
-//Functions for the weights class.
+//Added this
+void outputLayer::calculate(hiddenLayer hL, weights who)
+{
+	for(int k=0; k < numOutput; k++)
+	{
+		//clear value
+		setNeuron(k, 0);
+		
+		//get weighted sum of pattern and bias neuron
+		for( int j=0; j <= hL.getNumHidden(); j++ ) 
+		{
+			setNeuron(k, (getNeuron(k) + (hL.getNeuron(j) * who.getWeight(j,k))));
+		}
+		
+		//set to result of sigmoid
+		setNeuron(k, activationFunction(getNeuron(k)));
+	}
+}
+
+//Added this
+double outputLayer::activationFunction(double x)
+{
+	//sigmoid function
+	return 1/(1+exp(-x));
+}
 
 weights::weights(inputLayer iL, hiddenLayer hL)
 {

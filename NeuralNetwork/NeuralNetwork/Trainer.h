@@ -1,3 +1,4 @@
+#pragma once
 #include "Network.h"
 //Propagation class
 
@@ -45,7 +46,6 @@ public:
 
 	void incrementDeltaInputHidden(int i, int j, double value);
 
-
 	double getDeltaHiddenOutput(int i, int j);
 
 	void setDeltaHiddenOutput(int i, int j, double value);
@@ -54,3 +54,16 @@ public:
 
 
 };
+
+//class forwardPass
+//{
+//private:
+//	inputLayer iLayer;
+//	hiddenLayer hLayer;
+//	outputLayer oLayer;
+//	weights iWeights;
+//	weights hWeights;
+//public:
+//	forwardPass(inputLayer iL, weights wil, hiddenLayer hL, weights who, outputLayer oL);
+//
+//};

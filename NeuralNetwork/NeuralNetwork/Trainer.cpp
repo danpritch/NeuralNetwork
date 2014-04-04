@@ -93,3 +93,9 @@ void backPropagate::incrementDeltaHiddenOutput(int i, int j, double value)
 {
 	deltaHiddenOutput[i][j] += value;
 }
+
+
+//forwardPass::forwardPass(inputLayer iL, weights wil, hiddenLayer hL, weights who, outputLayer oL)
+//{
+//
+//}

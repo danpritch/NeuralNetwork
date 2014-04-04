@@ -1,5 +1,7 @@
-#ifndef NETWORK_H
-#define NETWORK_H
+#pragma once
+
+//To let the compiler know weights actually exists
+class weights;
 
 class inputLayer
 {
@@ -31,6 +33,10 @@ public:
 	void setNeuron(int n, double value);
 
 	int getNumHidden(void);
+
+	void calculate(inputLayer iL, weights wil);
+
+	double activationFunction(double x);
 };
 
 class outputLayer
@@ -47,6 +53,10 @@ public:
 	void setNeuron(int n, double value);
 
 	int getNumOutput(void);
+
+	void calculate(hiddenLayer hL, weights who);
+
+	double activationFunction(double x);
 };
 
 class weights
@@ -69,5 +79,3 @@ public:
 
 	void initialiseWeights(int n);
 };
-
-#endif
