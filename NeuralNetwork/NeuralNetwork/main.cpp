@@ -22,7 +22,10 @@ double learningRate = 0.9;
 //inputs
 unsigned char netInputs[inputDataLength];
 double netInputsBits[inputDataLength][input];
+
+//This is the array i need to pass to the training class
 double desiredOutputBits[inputDataLength][output];
+
 double setError[inputDataLength];
 char clampedOutput[output];
 
@@ -39,7 +42,6 @@ void calculateErrors(void);
 void checkErrorGradients(backPropagate bP);
 void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, backPropagate bP, int index);
 void checkDelta(backPropagate bP);
-void updateWeights(weights wil, weights who, backPropagate bP);
 void getErrors(outputLayer oL, int index);
 void displayOutput(void);
 void writeCSV(void);
@@ -51,6 +53,8 @@ void clampOutputs(outputLayer oL);
 
 int main(void)
 {
+	double check = 0;
+
 	char train = 'y';
 	char train2 = 'y';
 	char charIn[4];
@@ -60,16 +64,27 @@ int main(void)
 	hiddenLayer hLayer(hidden);
 	outputLayer oLayer(output);
 
-	backPropagate backProp(testLayer, hLayer, oLayer);
+	backPropagate backProp(testLayer.getInputs(), hLayer.getNumHidden(), oLayer.getNumOutput());
+	backProp.initialise(inputDataLength,output);
 	
 	weights wInputHidden(testLayer, hLayer);
 	weights wHiddenOutput(hLayer, oLayer);
 	
-	
-
 	generateNetInputs();
 	generateNetInputsBits();
 	calculateDesiredOutput();
+
+	for(int i = 0; i < trainingDataLength; i++) for(int j = 0; j < output; j++)
+	{
+		backProp.fillTrainingOutput(i,j,desiredOutputBits[i][j]);
+	}
+
+	for(int i = 0; i < trainingDataLength; i++) for(int j = 0; j < output; j++)
+	{
+		check += (desiredOutputBits[i][j] - backProp.getTrainingOutput(i,j));
+	}
+
+	cout << "The difference between the two data sets is: " << check << endl;
 
 	while (train == 'y')
 	{
@@ -84,28 +99,33 @@ int main(void)
 			testLayer.setNeuron(2, int(charIn[0]) - 48);
 			testLayer.setNeuron(1, int(charIn[1]) - 48);
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
-			
-			//calculateHiddenLayer(testLayer, hLayer, wInputHidden);
+
 			hLayer.calculate(testLayer, wInputHidden);
 			oLayer.calculate(hLayer, wHiddenOutput);
-			//calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
+
 			clampOutputs(oLayer);
 			displayOutputNeurons(oLayer);
 		}
 	}
 
 	//trainNetwork();
+	//This entire section need rewritten, and the back propogation class probably needs completely changed.
 	for (int i = 0; i < trainingDataLength; i++)
 	{
 		passInputData(testLayer, netInputsBits, i);	
-		//calculateHiddenLayer(testLayer, hLayer, wInputHidden);
-		//calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
+
+		//This will be condensed down to one line after the layer classes are sorted out
 		hLayer.calculate(testLayer, wInputHidden);
 		oLayer.calculate(hLayer, wHiddenOutput);
 
+		//what i think needs to happen here is that the entire training data string is passed to the training class
+		//the training data could be provided by a data reader class.
+		//so the training class could take a copy of the network (layers and weights) and data. do the training, and then write the trained weight values to the network.
+		//essentially cloning the network, then training it.
 		errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, backProp, i);
+		
 		getErrors(oLayer, i);
-		//updateWeights(wInputHidden, wHiddenOutput, backProp);
+
 		wInputHidden.update(backProp);
 		wHiddenOutput.update(backProp);
 	}
@@ -124,8 +144,6 @@ int main(void)
 			testLayer.setNeuron(1, int(charIn[1]) - 48);
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
 
-			//calculateHiddenLayer(testLayer, hLayer, wInputHidden);
-			//calculateOutputLayer(hLayer, oLayer, wHiddenOutput);
 			hLayer.calculate(testLayer, wInputHidden);
 			oLayer.calculate(hLayer, wHiddenOutput);
 
@@ -406,6 +424,7 @@ void checkOutputs(void)
 	}
 }
 
+//
 void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, backPropagate bP, int index)
 {
 	for(int k = 0; k < output; k++)
@@ -477,45 +496,6 @@ void checkDelta(backPropagate bP)
 
 
 }
-
-//All commented out now
-void updateWeights(weights wil, weights who, backPropagate bP)
-{
-	////input -> hidden weights
-	////--------------------------------------------------------------------------------------------------------
-	//for (int i = 0; i <= input; i++)
-	//{
-	//	for (int j = 0; j < hidden; j++) 
-	//	{
-	//		//update weight
-	//		//wil.setWeight(i,j,(wil.getWeight(i,j) + deltaInputHidden[i][j]));
-	//		wil.setWeight(i,j,(wil.getWeight(i,j) + bP.getDeltaInputHidden(i,j)));
-
-	//		//clear delta only if using batch (previous delta is needed for momentum
-	//		//deltaInputHidden[i][j] = 0;
-	//		bP.setDeltaInputHidden(i,j,0);
-	//	}
-	//}
-	//
-	////hidden -> output weights
-	////--------------------------------------------------------------------------------------------------------
-	//for (int j = 0; j <= hidden; j++)
-	//{
-	//	for (int k = 0; k < output; k++) 
-	//	{					
-	//		//update weight
-	//		//who.incrementWeight(j,k, deltaHiddenOutput[j][k]);
-	//		who.incrementWeight(j,k, bP.getDeltaHiddenOutput(j,k));
-	//		
-	//		//clear delta only if using batch (previous delta is needed for momentum)
-	//		//deltaHiddenOutput[j][k] = 0;
-	//		bP.setDeltaHiddenOutput(j,k,0);
-	//	}
-	//}
-}
-
-
-
 
 
 

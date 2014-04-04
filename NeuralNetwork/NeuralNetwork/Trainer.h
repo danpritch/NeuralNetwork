@@ -21,15 +21,24 @@ private:
 	double** deltaInputHidden;
 	double** deltaHiddenOutput;
 
+	//Training output
+	double** trainingOutput;
+
 	int numInput;
 	int numHidden;
 	int numOutput;
 
 public:
-	backPropagate(inputLayer iL, hiddenLayer hL, outputLayer oL);
+	backPropagate(int iL, int hL, int oL);
 
 	//Need variables more desciriptive than i and j but i'll change that later
 	//HiddenErrorGradients
+	double getTrainingOutput(int i, int j);
+
+	void fillTrainingOutput(int i, int j, double value);
+
+	void initialise(int length, int width);
+
 	double getHiddenErrorGradient(int i);
 
 	void setHiddenErrorGradient(int i, double value);
@@ -60,15 +69,4 @@ public:
 
 };
 
-//class forwardPass
-//{
-//private:
-//	inputLayer iLayer;
-//	hiddenLayer hLayer;
-//	outputLayer oLayer;
-//	weights iWeights;
-//	weights hWeights;
-//public:
-//	forwardPass(inputLayer iL, weights wil, hiddenLayer hL, weights who, outputLayer oL);
-//
-//};
+

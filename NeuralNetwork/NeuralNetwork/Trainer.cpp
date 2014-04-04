@@ -2,12 +2,17 @@
 #include "Network.h"
 #include <iostream>
 
-backPropagate::backPropagate(inputLayer iL, hiddenLayer hL, outputLayer oL)
+//Changing these to ints. But that was kind of pointless.
+backPropagate::backPropagate(int iL, int hL, int oL)
 {
-	numInput = iL.getInputs();
-	numHidden = hL.getNumHidden();
-	numOutput = oL.getNumOutput ();
+	numInput = iL;
+	numHidden = hL;
+	numOutput = oL;
+}
 
+//need to pass the training data sting into the argument here.
+void backPropagate::initialise(int length, int width)
+{
 	//Gradients
 	hiddenErrorGradients = new( double[numHidden + 1] );
 	for ( int i=0; i <= numHidden; i++ ) hiddenErrorGradients[i] = 0;
@@ -30,9 +35,28 @@ backPropagate::backPropagate(inputLayer iL, hiddenLayer hL, outputLayer oL)
 		for ( int j=0; j < numOutput; j++ ) deltaHiddenOutput[i][j] = 0;		
 	}
 
+	//initialising training data here
+	//Using new, set the length of the data.
+	trainingOutput = new(double*[length]);
+	for (int i = 0; i < length;i++)
+	{
+		trainingOutput[i] = new(double[width]);
+		for (int j = 0; j < width; j++) trainingOutput[i][j] = 0;
+	}
 }
 
 //Gradients
+double backPropagate::getTrainingOutput(int i, int j)
+{
+	return trainingOutput[i][j];
+}
+
+
+void backPropagate::fillTrainingOutput(int i, int j, double value)
+{
+	trainingOutput[i][j] = value;
+}
+
 double backPropagate::getHiddenErrorGradient(int i)
 {
 	return hiddenErrorGradients[i];
@@ -95,7 +119,3 @@ void backPropagate::incrementDeltaHiddenOutput(int i, int j, double value)
 }
 
 
-//forwardPass::forwardPass(inputLayer iL, weights wil, hiddenLayer hL, weights who, outputLayer oL)
-//{
-//
-//}
