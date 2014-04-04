@@ -1,7 +1,10 @@
 #pragma once
+#include "Trainer.h"
 
 //To let the compiler know weights actually exists
 class weights;
+
+class backPropagate;
 
 class inputLayer
 {
@@ -65,6 +68,7 @@ private:
 	int numLayerOne;
 	int numLayerTwo;
 	double** weightArray;
+	int wType;
 
 public:
 	weights(inputLayer iL, hiddenLayer hL);
@@ -78,4 +82,6 @@ public:
 	void weights::incrementWeight(int layerOne , int layerTwo, double value);
 
 	void initialiseWeights(int n);
+
+	void update(backPropagate bP);
 };

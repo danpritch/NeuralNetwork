@@ -134,6 +134,8 @@ double outputLayer::activationFunction(double x)
 
 weights::weights(inputLayer iL, hiddenLayer hL)
 {
+	//For the weight update phase
+	wType = 0;
 	numLayerOne = iL.getInputs();
 	numLayerTwo = hL.getNumHidden();
 	weightArray = new(double*[numLayerOne + 1]);
@@ -149,6 +151,7 @@ weights::weights(inputLayer iL, hiddenLayer hL)
 
 weights::weights(hiddenLayer hL, outputLayer oL)
 {
+	wType = 1;
 	numLayerOne = hL.getNumHidden();
 	numLayerTwo = oL.getNumOutput();
 	weightArray = new(double*[numLayerOne + 1]);
@@ -187,3 +190,42 @@ void weights::initialiseWeights(int n)
 		}
 	}
 }
+
+void weights::update(backPropagate bP)
+{
+	if (wType == 0)
+	{
+		for (int i = 0; i <= numLayerOne; i++)
+		{
+			for (int j = 0; j < numLayerTwo; j++) 
+			{
+				//update weight
+				//wil.setWeight(i,j,(wil.getWeight(i,j) + deltaInputHidden[i][j]));
+				setWeight(i,j,(getWeight(i,j) + bP.getDeltaInputHidden(i,j)));
+
+				//clear delta only if using batch (previous delta is needed for momentum
+				//deltaInputHidden[i][j] = 0;
+				bP.setDeltaInputHidden(i,j,0);
+			}
+		}
+	}
+
+	if (wType == 1)
+	{
+		for (int j = 0; j <= numLayerOne; j++)
+		{
+			for (int k = 0; k < numLayerTwo; k++) 
+			{					
+				//update weight
+				//who.incrementWeight(j,k, deltaHiddenOutput[j][k]);
+				incrementWeight(j,k, bP.getDeltaHiddenOutput(j,k));
+			
+				//clear delta only if using batch (previous delta is needed for momentum)
+				//deltaHiddenOutput[j][k] = 0;
+				bP.setDeltaHiddenOutput(j,k,0);
+			}
+		}
+	}
+}
+
+

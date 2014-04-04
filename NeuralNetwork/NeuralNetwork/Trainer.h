@@ -5,6 +5,11 @@
 //Back propagation class
 //Private variables will be deltas and gradients
 
+class inputLayer;
+class hiddenLayer;
+class outputLayer;
+class weights;
+
 class backPropagate
 {
 private:

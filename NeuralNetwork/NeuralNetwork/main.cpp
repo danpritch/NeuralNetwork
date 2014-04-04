@@ -60,10 +60,12 @@ int main(void)
 	hiddenLayer hLayer(hidden);
 	outputLayer oLayer(output);
 
+	backPropagate backProp(testLayer, hLayer, oLayer);
+	
 	weights wInputHidden(testLayer, hLayer);
 	weights wHiddenOutput(hLayer, oLayer);
 	
-	backPropagate backProp(testLayer, hLayer, oLayer);
+	
 
 	generateNetInputs();
 	generateNetInputsBits();
@@ -103,7 +105,9 @@ int main(void)
 
 		errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, backProp, i);
 		getErrors(oLayer, i);
-		updateWeights(wInputHidden, wHiddenOutput, backProp);
+		//updateWeights(wInputHidden, wHiddenOutput, backProp);
+		wInputHidden.update(backProp);
+		wHiddenOutput.update(backProp);
 	}
 
 	while (train2 == 'y')
@@ -474,39 +478,40 @@ void checkDelta(backPropagate bP)
 
 }
 
+//All commented out now
 void updateWeights(weights wil, weights who, backPropagate bP)
 {
-	//input -> hidden weights
-	//--------------------------------------------------------------------------------------------------------
-	for (int i = 0; i <= input; i++)
-	{
-		for (int j = 0; j < hidden; j++) 
-		{
-			//update weight
-			//wil.setWeight(i,j,(wil.getWeight(i,j) + deltaInputHidden[i][j]));
-			wil.setWeight(i,j,(wil.getWeight(i,j) + bP.getDeltaInputHidden(i,j)));
+	////input -> hidden weights
+	////--------------------------------------------------------------------------------------------------------
+	//for (int i = 0; i <= input; i++)
+	//{
+	//	for (int j = 0; j < hidden; j++) 
+	//	{
+	//		//update weight
+	//		//wil.setWeight(i,j,(wil.getWeight(i,j) + deltaInputHidden[i][j]));
+	//		wil.setWeight(i,j,(wil.getWeight(i,j) + bP.getDeltaInputHidden(i,j)));
 
-			//clear delta only if using batch (previous delta is needed for momentum
-			//deltaInputHidden[i][j] = 0;
-			bP.setDeltaInputHidden(i,j,0);
-		}
-	}
-	
-	//hidden -> output weights
-	//--------------------------------------------------------------------------------------------------------
-	for (int j = 0; j <= hidden; j++)
-	{
-		for (int k = 0; k < output; k++) 
-		{					
-			//update weight
-			//who.incrementWeight(j,k, deltaHiddenOutput[j][k]);
-			who.incrementWeight(j,k, bP.getDeltaHiddenOutput(j,k));
-			
-			//clear delta only if using batch (previous delta is needed for momentum)
-			//deltaHiddenOutput[j][k] = 0;
-			bP.setDeltaHiddenOutput(j,k,0);
-		}
-	}
+	//		//clear delta only if using batch (previous delta is needed for momentum
+	//		//deltaInputHidden[i][j] = 0;
+	//		bP.setDeltaInputHidden(i,j,0);
+	//	}
+	//}
+	//
+	////hidden -> output weights
+	////--------------------------------------------------------------------------------------------------------
+	//for (int j = 0; j <= hidden; j++)
+	//{
+	//	for (int k = 0; k < output; k++) 
+	//	{					
+	//		//update weight
+	//		//who.incrementWeight(j,k, deltaHiddenOutput[j][k]);
+	//		who.incrementWeight(j,k, bP.getDeltaHiddenOutput(j,k));
+	//		
+	//		//clear delta only if using batch (previous delta is needed for momentum)
+	//		//deltaHiddenOutput[j][k] = 0;
+	//		bP.setDeltaHiddenOutput(j,k,0);
+	//	}
+	//}
 }
 
 
