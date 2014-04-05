@@ -1,8 +1,9 @@
 #include "Trainer.h"
-#include "Network.h"
-#include <iostream>
-
+//#include "Test.h"
 //Changing these to ints. But that was kind of pointless.
+
+//const int backPropagate::OUTPUT = output;
+
 backPropagate::backPropagate(int iL, int hL, int oL)
 {
 	numInput = iL;
@@ -102,10 +103,31 @@ double backPropagate::getTrainingOutput(int i, int j)
 	return trainingOutput[i][j];
 }
 
+
+
+//The ugly functions counter part.
 void backPropagate::fillTrainingOutput(int i, int j, double value)
 {
 	trainingOutput[i][j] = value;
 }
+
+//How to I change the 7 to not a variable!
+void backPropagate::fillTrainingOutput(double data[][output])
+{
+	for (int i = 0; i < trainingDataLength; i++)
+	{
+		for (int j = 0; j < output; j++)
+		{
+			trainingOutput[i][j] = data[i][j];
+		}
+
+	}
+
+}
+
+
+
+
 
 double backPropagate::getHiddenErrorGradient(int i)
 {

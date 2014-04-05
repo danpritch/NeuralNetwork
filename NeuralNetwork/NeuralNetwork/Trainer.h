@@ -1,5 +1,6 @@
 #pragma once
 #include "Network.h"
+#include "Constants.h"
 //Propagation class
 
 //Back propagation class
@@ -32,6 +33,7 @@ private:
 	int numOutput;
 
 public:
+
 	backPropagate(int iL, int hL, int oL);
 
 	//Need variables more desciriptive than i and j but i'll change that later
@@ -41,6 +43,9 @@ public:
 	double getTrainingOutput(int i, int j);
 
 	void fillTrainingOutput(int i, int j, double value);
+
+	//This is the one
+	void fillTrainingOutput(double data[][output]);
 
 	void initialise(int length, int width);
 

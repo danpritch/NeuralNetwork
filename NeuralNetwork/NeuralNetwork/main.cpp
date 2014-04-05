@@ -1,23 +1,13 @@
+#pragma once
 #include <stdio.h>
 #include <iostream>
 #include <math.h>
-//#include "Header.h"
 #include "Network.h"
 #include "Trainer.h"
 #include <fstream>
 #include <string>
-
+#include "Constants.h"
 using namespace std;
-
-//constants
-const int input = 3;
-const int hidden = 7;
-const int output = 7;
-const int inputDataLength = 5000;
-const int trainingDataLength = 5000;
-
-//variables
-double learningRate = 0.9;
 
 //inputs
 unsigned char netInputs[inputDataLength];
@@ -25,21 +15,19 @@ double netInputsBits[inputDataLength][input];
 
 //This is the array i need to pass to the training class
 double desiredOutputBits[inputDataLength][output];
-
 char clampedOutput[output];
 
 //prototypes
 void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL);
 void genRand(void);
 void generateNetInputs(void);
-void checkInputData(void);
+
 void generateNetInputsBits(void);
 void passInputData(inputLayer iL, double data[][input], int index);
 void calculateDesiredOutput(void);
-void checkOutputs(void);
-void calculateErrors(void);
-void checkErrorGradients(backPropagate bP);
-void checkDelta(backPropagate bP);
+
+//void calculateErrors(void);
+
 void displayOutput(void);
 void writeCSV(void);
 void modulus(void);
@@ -58,21 +46,16 @@ int main(void)
 	inputLayer testLayer(input);
 	hiddenLayer hLayer(hidden);
 	outputLayer oLayer(output);
-
-	backPropagate backProp(testLayer.getInputs(), hLayer.getNumHidden(), oLayer.getNumOutput());
-	backProp.initialise(inputDataLength,output);
-	
 	weights wInputHidden(testLayer, hLayer);
 	weights wHiddenOutput(hLayer, oLayer);
+	backPropagate backProp(testLayer.getInputs(), hLayer.getNumHidden(), oLayer.getNumOutput());
 	
+	backProp.initialise(inputDataLength,output);
 	generateNetInputs();
 	generateNetInputsBits();
 	calculateDesiredOutput();
 
-	for(int i = 0; i < trainingDataLength; i++) for(int j = 0; j < output; j++)
-	{
-		backProp.fillTrainingOutput(i,j,desiredOutputBits[i][j]);
-	}
+	backProp.fillTrainingOutput(desiredOutputBits);
 
 	while (train == 'y')
 	{
@@ -106,14 +89,8 @@ int main(void)
 		hLayer.calculate(testLayer, wInputHidden);
 		oLayer.calculate(hLayer, wHiddenOutput);
 
-		//what i think needs to happen here is that the entire training data string is passed to the training class
-		//the training data could be provided by a data reader class.
-		//so the training class could take a copy of the network (layers and weights) and data. do the training, and then write the trained weight values to the network.
-		//essentially cloning the network, then training it.
-		backProp.errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, learningRate, i);
+		backProp.errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, LearningRate, i);
 		
-		//getErrors(oLayer, i);
-
 		wInputHidden.update(backProp);
 		wHiddenOutput.update(backProp);
 	}
@@ -310,15 +287,6 @@ void generateNetInputsBits(void)
 	}
 }
 
-void checkInputData(void)
-{
-	for (int i = 0; i < inputDataLength; i++)
-	{
-		cout << "The value in netInputs is: " << int(netInputs[i]) << ". In bits this is: " 
-			<< netInputsBits[i][2] << " " << netInputsBits[i][1] << " "<< netInputsBits[i][0] << endl; 
-	}
-}
-
 void passInputData(inputLayer iL, double data[][input], int index)
 {
 	//set input neurons to input values
@@ -391,49 +359,5 @@ void calculateDesiredOutput(void)
 		}
 	}
 }
-
-void checkOutputs(void)
-{
-	for (int i = 0; i < inputDataLength; i++)
-	{
-		cout << "Input: " << int(netInputs[i]) << "     Outputs: " << desiredOutputBits[i][6] << desiredOutputBits[i][5] << desiredOutputBits[i][4] <<
-			desiredOutputBits[i][3] << desiredOutputBits[i][2] << desiredOutputBits[i][1] << desiredOutputBits[i][0] << endl;
-		
-	}
-}
-
-//arguments and prototype
-void checkErrorGradients(backPropagate bP)
-{
-	for(int i = 0; i < output; i++)
-	{
-		//cout << "Error gradient for output neuron " << i << " is: " << outputErrorGradients[i] << endl;
-		cout << "Error gradient for output neuron " << i << " is: " << bP.getOutputErrorGradient(i) << endl;
-	}
-}
-
-void checkDelta(backPropagate bP)
-{
-	for(int i = 0; i < output; i++)
-	{
-		for(int j = 0; j < (hidden + 1); j++)
-		{
-			//cout << "Deltas for HiddenOutput (" << i << ", " << j << ") is: " << deltaHiddenOutput[i][j] << endl;
-			cout << "Deltas for HiddenOutput (" << i << ", " << j << ") is: " << bP.getDeltaHiddenOutput(i,j) << endl;
-		}
-	}
-
-	for(int i = 0; i < (input + 1); i++)
-	{
-		for(int j = 0; j < (hidden + 1); j++)
-		{
-			//cout << "Deltas for InputHidden (" << i << ", " << j << ") is: " << deltaInputHidden[i][j] << endl;
-			cout << "Deltas for InputHidden (" << i << ", " << j << ") is: " << bP.getDeltaInputHidden(i,j) << endl;
-		}
-	}
-
-
-}
-
 
 

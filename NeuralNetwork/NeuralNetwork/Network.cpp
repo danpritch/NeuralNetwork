@@ -1,7 +1,7 @@
+#pragma once
 #include "Network.h"
-
-#include <iostream>
 #include <math.h>
+#include <iostream>
 
 //Functions for input layer
 
