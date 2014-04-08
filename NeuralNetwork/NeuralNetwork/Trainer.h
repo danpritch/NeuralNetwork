@@ -46,7 +46,7 @@ public:
 
 	double** getDeltaInputHiddens(void);
 
-	void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, weights wil, dataIO data, int index);
+	void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, weights wil, dataIO data);
 
 	double getTrainingOutput(int i, int j);
 

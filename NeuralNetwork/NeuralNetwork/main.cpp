@@ -59,17 +59,8 @@ int main(void)
 		}
 	}
 
-	////trainNetwork();
-	//This entire section need rewritten, and the back propogation class probably needs completely changed.
-	for (int i = 0; i < trainingDataLength; i++)
-	{
-		//I need to add the dataIO class into the function arguments.
-		backProp.errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, wInputHidden, testclass, i);	
-		//wInputHidden.update(backProp);
-		//wInputHidden.update(backProp.getDeltaInputHiddens(), backProp.getDeltaHiddenOutputs());
-		//wHiddenOutput.update(backProp);
-		//wHiddenOutput.update(backProp.getDeltaInputHiddens(), backProp.getDeltaHiddenOutputs());
-	}
+	//Train network
+	backProp.errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, wInputHidden, testclass);	
 
 	//Second simulation using user input
 	while (train2 == 'y')

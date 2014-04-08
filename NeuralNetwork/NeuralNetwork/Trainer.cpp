@@ -52,72 +52,75 @@ void backPropagate::initialise(int length, int width, dataIO data)
 	for (int i = 0; i < length; i++) setError[i] = 0;
 }
 
-void backPropagate::errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, weights wil, dataIO data, int index)
+void backPropagate::errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, weights wil, dataIO data)
 {
-	/*In this section I update the input neurons with the next iteration of input data given by the index.*/
-	for(int i = 0; i < iL.getInputs(); i++)
+	for(int index = 0; index < data.getInputDataLengths(0); index++)
 	{
-		iL.setNeuron(i, data.getInput(i, index));
-	}
+		/*In this section I update the input neurons with the next iteration of input data given by the index.*/
+		for(int i = 0; i < iL.getInputs(); i++)
+		{
+			iL.setNeuron(i, data.getInput(i, index));
+		}
 
-	/*This section is the forward pass, where the value in the neurons in each layer is calculated from the previous layers value and weight connection. */
-	hL.calculate(iL, wil);
-	oL.calculate(hL, who);
+		/*This section is the forward pass, where the value in the neurons in each layer is calculated from the previous layers value and weight connection. */
+		hL.calculate(iL, wil);
+		oL.calculate(hL, who);
 	
-	/*This section is the beginning of the back propogation phase, first the gradients are calculated, then the associated deltas.
-	  I start by iterating through each output neuron.*/
-	for(int k = 0; k < oL.getNumOutput(); k++)
-	{
-		/*I need to remember that training[k][index] was changed from training[index][k] due to the way the input data array is structured.
-		  The gradient is given by: (derivative of the signmoid function) multiplied by the (difference between the actual and expected value of the output).
-		  At this point, the neuron output has already been multiplied by the sigmoid function so I don't need to do it here.*/
-		outputErrorGradients[k] = oL.getNeuron(k)*(1-oL.getNeuron(k))*(trainingOutput[k][index] - oL.getNeuron(k));
+		/*This section is the beginning of the back propogation phase, first the gradients are calculated, then the associated deltas.
+		  I start by iterating through each output neuron.*/
+		for(int k = 0; k < oL.getNumOutput(); k++)
+		{
+			/*I need to remember that training[k][index] was changed from training[index][k] due to the way the input data array is structured.
+			  The gradient is given by: (derivative of the signmoid function) multiplied by the (difference between the actual and expected value of the output).
+			  At this point, the neuron output has already been multiplied by the sigmoid function so I don't need to do it here.*/
+			outputErrorGradients[k] = oL.getNeuron(k)*(1-oL.getNeuron(k))*(trainingOutput[k][index] - oL.getNeuron(k));
 		
-		/*Then for each output neuron, I iterate through each connection to a hidden neuron, including the bias neuron.*/
-		for (int j = 0; j <= hL.getNumHidden(); j++) 
-		{
-			/*This equation is consistant with Jonathons notes, for each gradient, multiply be each hidden neuron to find the delta.
-			  I don't believe the increment is needed here unless I was using momentum, but might as well keep it in.*/
-			deltaHiddenOutput[j][k] += learningRate * hL.getNeuron(j) * outputErrorGradients[k];
+			/*Then for each output neuron, I iterate through each connection to a hidden neuron, including the bias neuron.*/
+			for (int j = 0; j <= hL.getNumHidden(); j++) 
+			{
+				/*This equation is consistant with Jonathons notes, for each gradient, multiply be each hidden neuron to find the delta.
+				  I don't believe the increment is needed here unless I was using momentum, but might as well keep it in.*/
+				deltaHiddenOutput[j][k] += learningRate * hL.getNeuron(j) * outputErrorGradients[k];
+			}
 		}
-	}
 
-	/*This section finds the deltas between the input and the hidden layers.*/
-	for (int j = 0; j < hL.getNumHidden(); j++)
-	{
-		//get error gradient for every hidden node
-		//first i need to get the sum of the hidden neuron weights multiplied by each of the error gradients. 
-		//so i can find the error in each hidden neuron.
-
-		/*It's not as simple to find the errors in the hidden layer to calculate the gradients, as we don't know what the error actually is.
-		  We calculate the error by multiply the error gradients of the output neurons, by their weight connection to the hidden neuron in question,
-		  and then summing it for each connection. This give us the total error in the hidden neuron. */
-		double weightedSum = 0;
-		for( int k = 0; k < oL.getNumOutput(); k++ ) 
+		/*This section finds the deltas between the input and the hidden layers.*/
+		for (int j = 0; j < hL.getNumHidden(); j++)
 		{
-			weightedSum += who.getWeight(j,k) * outputErrorGradients[k];
-		}
+			//get error gradient for every hidden node
+			//first i need to get the sum of the hidden neuron weights multiplied by each of the error gradients. 
+			//so i can find the error in each hidden neuron.
+
+			/*It's not as simple to find the errors in the hidden layer to calculate the gradients, as we don't know what the error actually is.
+			  We calculate the error by multiply the error gradients of the output neurons, by their weight connection to the hidden neuron in question,
+			  and then summing it for each connection. This give us the total error in the hidden neuron. */
+			double weightedSum = 0;
+			for( int k = 0; k < oL.getNumOutput(); k++ ) 
+			{
+				weightedSum += who.getWeight(j,k) * outputErrorGradients[k];
+			}
 		
-		/*After the error in the hidden layer is found the procedure for calculating the deltas is the same*/
-		hiddenErrorGradients[j] = hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum;
+			/*After the error in the hidden layer is found the procedure for calculating the deltas is the same*/
+			hiddenErrorGradients[j] = hL.getNeuron(j) * ( 1 -  hL.getNeuron(j)) * weightedSum;
 
-		for (int i = 0; i <= iL.getInputs(); i++)
-		{
-			incrementDeltaInputHidden(i, j, (learningRate * iL.getNeuron(i) * getHiddenErrorGradient(j)));
+			for (int i = 0; i <= iL.getInputs(); i++)
+			{
+				incrementDeltaInputHidden(i, j, (learningRate * iL.getNeuron(i) * getHiddenErrorGradient(j)));
+			}
 		}
-	}
 
-	//going to include the setError code here just to see what happens, but i think itll work.
-	for(int k = 0; k < oL.getNumOutput(); k++)
-	{
-		//setError[index]  += outputNeurons[k] - desiredOutputBits[index][k];
-		//same issue here
-		setError[index]  += oL.getNeuron(k) - trainingOutput[k][index];
-	}
-	setError[index] = setError[index]/oL.getNumOutput();
+		//going to include the setError code here just to see what happens, but i think itll work.
+		for(int k = 0; k < oL.getNumOutput(); k++)
+		{
+			//setError[index]  += outputNeurons[k] - desiredOutputBits[index][k];
+			//same issue here
+			setError[index]  += oL.getNeuron(k) - trainingOutput[k][index];
+		}
+		setError[index] = setError[index]/oL.getNumOutput();
 
-	wil.update(deltaInputHidden, deltaHiddenOutput);
-	who.update(deltaInputHidden, deltaHiddenOutput);
+		wil.update(deltaInputHidden, deltaHiddenOutput);
+		who.update(deltaInputHidden, deltaHiddenOutput);
+	}
 }
 
 double** backPropagate::getDeltaHiddenOutputs(void)
