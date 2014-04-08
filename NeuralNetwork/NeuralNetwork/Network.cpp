@@ -79,9 +79,7 @@ double hiddenLayer::activationFunction(double x)
 	return 1/(1+exp(-x));
 }
 
-
 //Functions for output layer class
-
 outputLayer::outputLayer(int n)
 {
 	numOutput = n;
@@ -191,6 +189,7 @@ void weights::initialiseWeights(int n)
 	}
 }
 
+//This needs changing so that it accepts an array instead of an entire class.
 void weights::update(backPropagate bP)
 {
 	if (wType == 0)
@@ -226,6 +225,49 @@ void weights::update(backPropagate bP)
 			}
 		}
 	}
+}
+
+void weights::update(double** dataih, double** dataho)
+{
+	if (wType == 0)
+	{
+		for (int i = 0; i <= numLayerOne; i++)
+		{
+			for (int j = 0; j < numLayerTwo; j++) 
+			{
+				//update weight
+				//wil.setWeight(i,j,(wil.getWeight(i,j) + deltaInputHidden[i][j]));
+				//setWeight(i,j,(getWeight(i,j) + bP.getDeltaInputHidden(i,j)));
+				setWeight(i,j,(getWeight(i,j) + dataih[i][j]));
+
+				//clear delta only if using batch (previous delta is needed for momentum
+				//deltaInputHidden[i][j] = 0;
+				//I can then move this to part to the backpropogation class
+				//bP.setDeltaInputHidden(i,j,0);
+				dataih[i][j] = 0;
+			}
+		}
+	}
+
+	if (wType == 1)
+	{
+		for (int j = 0; j <= numLayerOne; j++)
+		{
+			for (int k = 0; k < numLayerTwo; k++) 
+			{					
+				//update weight
+				//who.incrementWeight(j,k, deltaHiddenOutput[j][k]);
+				//incrementWeight(j,k, bP.getDeltaHiddenOutput(j,k));
+				incrementWeight(j,k, dataho[j][k]);
+			
+				//clear delta only if using batch (previous delta is needed for momentum)
+				//deltaHiddenOutput[j][k] = 0;
+				//bP.setDeltaHiddenOutput(j,k,0);
+				dataho[j][k] = 0;
+			}
+		}
+	}
+
 }
 
 

@@ -84,4 +84,6 @@ public:
 	void initialiseWeights(int n);
 
 	void update(backPropagate bP);
+
+	void update(double** dataih, double** dataho);
 };

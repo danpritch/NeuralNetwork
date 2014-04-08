@@ -2,11 +2,21 @@ void checkInputData(void);
 void checkOutputs(void);
 void checkErrorGradients(backPropagate bP);
 void checkDelta(backPropagate bP);
-
 void genRand(void);
 void generateNetInputs(void);
 void generateNetInputsBits(void);
 void calculateDesiredOutput(void);
+void passInputData(inputLayer iL, double** data, int index);
+
+void passInputData(inputLayer iL, double** data, int index)
+{
+	//set input neurons to input values
+	for(int i = 0; i < input; i++)
+	{
+		//Had to swap the array dimensions around because of the screw up i made in the dataIO class
+		iL.setNeuron(i, data[i][index]);
+	}
+}
 
 void genRand(void)
 {

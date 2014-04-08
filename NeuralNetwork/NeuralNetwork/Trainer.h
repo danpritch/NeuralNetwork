@@ -40,14 +40,15 @@ public:
 	//Need variables more desciriptive than i and j but i'll change that later
 	//HiddenErrorGradients
 	//removing learning rate to use the constant instead.
-	void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, int index);
+	//Added the other weight layer.
+	//Added the dataIO class
+	double** getDeltaHiddenOutputs(void);
+
+	double** getDeltaInputHiddens(void);
+
+	void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, weights wil, dataIO data, int index);
 
 	double getTrainingOutput(int i, int j);
-
-	void fillTrainingOutput(int i, int j, double value);
-
-	//This is the one
-	void fillTrainingOutput(double data[][output]);
 
 	//Changed to add dataIO to argument
 	void initialise(int length, int width, dataIO data);

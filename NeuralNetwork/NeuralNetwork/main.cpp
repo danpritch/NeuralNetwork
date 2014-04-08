@@ -15,7 +15,6 @@ char clampedOutput[output];
 
 //prototypes
 void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL);
-void passInputData(inputLayer iL, double** data, int index);
 void displayOutput(void);
 void writeCSV(void);
 void modulus(void);
@@ -39,9 +38,6 @@ int main(void)
 	dataIO testclass(3,7);	
 	
 	backProp.initialise(inputDataLength,output,testclass);
-
-	//backkProp fillTrainingOutput is no longer needed and can be removed from the class.
-	//backProp.fillTrainingOutput(desiredOutputBits);
 
 	//First simulation using user input.
 	while (train == 'y')
@@ -67,16 +63,12 @@ int main(void)
 	//This entire section need rewritten, and the back propogation class probably needs completely changed.
 	for (int i = 0; i < trainingDataLength; i++)
 	{
-		passInputData(testLayer, testclass.getInputs(), i);	
-
-		//This will be condensed down to one line after the layer classes are sorted out
-		hLayer.calculate(testLayer, wInputHidden);
-		oLayer.calculate(hLayer, wHiddenOutput);
-
-		backProp.errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, i);
-		
-		wInputHidden.update(backProp);
-		wHiddenOutput.update(backProp);
+		//I need to add the dataIO class into the function arguments.
+		backProp.errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, wInputHidden, testclass, i);	
+		//wInputHidden.update(backProp);
+		//wInputHidden.update(backProp.getDeltaInputHiddens(), backProp.getDeltaHiddenOutputs());
+		//wHiddenOutput.update(backProp);
+		//wHiddenOutput.update(backProp.getDeltaInputHiddens(), backProp.getDeltaHiddenOutputs());
 	}
 
 	//Second simulation using user input
@@ -217,18 +209,7 @@ void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL, weights wil, weight
 	}
 }
 
-//I think if I change this function so that the parameter takes a pointer I can pass the dataIO.getInputs to it.
-//Need to changed the prototype as well
-//void passInputData(inputLayer iL, int data[][input], int index)
-void passInputData(inputLayer iL, double** data, int index)
-{
-	//set input neurons to input values
-	for(int i = 0; i < input; i++)
-	{
-		//Had to swap the array dimensions around because of the screw up i made in the dataIO class
-		iL.setNeuron(i, data[i][index]);
-	}
-}
+
 
 
 
