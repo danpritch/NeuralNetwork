@@ -10,24 +10,12 @@
 #include "Constants.h"
 using namespace std;
 
-//inputs
-unsigned char netInputs[inputDataLength];
-//double netInputsBits[inputDataLength][input];
-int netInputsBits[inputDataLength][input];
-
-//This is the array i need to pass to the training class
-int desiredOutputBits[inputDataLength][output];
+//variables
 char clampedOutput[output];
 
 //prototypes
 void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL);
-void genRand(void);
-void generateNetInputs(void);
-
-void generateNetInputsBits(void);
-void passInputData(inputLayer iL, int data[][input], int index);
-void calculateDesiredOutput(void);
-
+void passInputData(inputLayer iL, double** data, int index);
 void displayOutput(void);
 void writeCSV(void);
 void modulus(void);
@@ -41,8 +29,6 @@ int main(void)
 	char train = 'y';
 	char train2 = 'y';
 	char charIn[4];
-	//char buffer[33];
-	//initialiseNetwork();
 
 	inputLayer testLayer(input);
 	hiddenLayer hLayer(hidden);
@@ -50,22 +36,14 @@ int main(void)
 	weights wInputHidden(testLayer, hLayer);
 	weights wHiddenOutput(hLayer, oLayer);
 	backPropagate backProp(testLayer.getInputs(), hLayer.getNumHidden(), oLayer.getNumOutput());
-	dataIO testclass(3,7);
-
-	
+	dataIO testclass(3,7);	
 	
 	backProp.initialise(inputDataLength,output,testclass);
-	generateNetInputs();
-	generateNetInputsBits();
-	//calculateDesiredOutput();
 
-
-
-
-	//netInputBits - I need to write each input to a different file, 0, 1, 2.
-
+	//backkProp fillTrainingOutput is no longer needed and can be removed from the class.
 	//backProp.fillTrainingOutput(desiredOutputBits);
 
+	//First simulation using user input.
 	while (train == 'y')
 	{
 		cout << "Would you like to test the untrained network? [y/n]: ";
@@ -75,14 +53,11 @@ int main(void)
 		{
 			cout << "Please enter a 3-bit number (i.e. 101) : ";
 			cin.getline(charIn,4);
-
 			testLayer.setNeuron(2, int(charIn[0]) - 48);
 			testLayer.setNeuron(1, int(charIn[1]) - 48);
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
-
 			hLayer.calculate(testLayer, wInputHidden);
 			oLayer.calculate(hLayer, wHiddenOutput);
-
 			clampOutputs(oLayer);
 			displayOutputNeurons(oLayer);
 		}
@@ -92,7 +67,7 @@ int main(void)
 	//This entire section need rewritten, and the back propogation class probably needs completely changed.
 	for (int i = 0; i < trainingDataLength; i++)
 	{
-		passInputData(testLayer, netInputsBits, i);	
+		passInputData(testLayer, testclass.getInputs(), i);	
 
 		//This will be condensed down to one line after the layer classes are sorted out
 		hLayer.calculate(testLayer, wInputHidden);
@@ -104,6 +79,7 @@ int main(void)
 		wHiddenOutput.update(backProp);
 	}
 
+	//Second simulation using user input
 	while (train2 == 'y')
 	{
 		cout << "Would you like to test the trained network? [y/n]: ";
@@ -113,16 +89,12 @@ int main(void)
 		{
 			cout << "Please enter a 3-bit number (i.e. 101) : ";
 			cin.getline(charIn,4);
-
 			testLayer.setNeuron(2, int(charIn[0]) - 48);
 			testLayer.setNeuron(1, int(charIn[1]) - 48);
 			testLayer.setNeuron(0, int(charIn[2]) - 48);
-
 			hLayer.calculate(testLayer, wInputHidden);
 			oLayer.calculate(hLayer, wHiddenOutput);
-
 			clampOutputs(oLayer);
-
 			displayOutputNeurons(oLayer);
 		}
 	}
@@ -245,128 +217,19 @@ void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL, weights wil, weight
 	}
 }
 
-void genRand(void)
-{
-	int value;
-	for (int i = 0; i < 100; i++)
-	{
-		value = ((rand()%10) + 1);
-		cout << "Random number is: " << value << endl;
-	}
-}
-
-void generateNetInputs(void)
-{
-	for (int i = 0; i < inputDataLength; i++)
-	{
-		netInputs[i] = rand() % 7 + 1;
-	}
-}
-
-void generateNetInputsBits(void)
-{
-	for (int i = 0; i < inputDataLength; i++)
-	{
-		if(netInputs[i] & (1 << 0)) 
-		{
-			netInputsBits[i][0] = 1;
-		}
-		else
-		{
-			netInputsBits[i][0] = 0;
-		}
-
-		if(netInputs[i] & (1 << 1)) 
-		{
-			netInputsBits[i][1] = 1;
-		}
-		else
-		{
-			netInputsBits[i][1] = 0;
-		}
-
-		if(netInputs[i] & (1 << 2)) 
-		{
-			netInputsBits[i][2] = 1;
-		}
-		else
-		{
-			netInputsBits[i][2] = 0;
-		}
-	}
-}
-
-void passInputData(inputLayer iL, int data[][input], int index)
+//I think if I change this function so that the parameter takes a pointer I can pass the dataIO.getInputs to it.
+//Need to changed the prototype as well
+//void passInputData(inputLayer iL, int data[][input], int index)
+void passInputData(inputLayer iL, double** data, int index)
 {
 	//set input neurons to input values
 	for(int i = 0; i < input; i++)
 	{
-		iL.setNeuron(i, double(data[index][i]));
+		//Had to swap the array dimensions around because of the screw up i made in the dataIO class
+		iL.setNeuron(i, data[i][index]);
 	}
 }
 
-void calculateDesiredOutput(void)
-{
-	for(int i = 0; i < inputDataLength; i++)
-	{
-		if (netInputs[i] == 1)
-		{
-			desiredOutputBits[i][0] = 1;
-		}
-		else
-		{
-			desiredOutputBits[i][0] = 0;
-		}
 
-		if (netInputs[i] == 2)
-		{
-			desiredOutputBits[i][1] = 1;
-		}
-		else
-		{
-			desiredOutputBits[i][1] = 0;
-		}
-		if (netInputs[i] == 3)
-		{
-			desiredOutputBits[i][2] = 1;
-		}
-		else
-		{
-			desiredOutputBits[i][2] = 0;
-		}
-		if (netInputs[i] == 4)
-		{
-			desiredOutputBits[i][3] = 1;
-		}
-		else
-		{
-			desiredOutputBits[i][3] = 0;
-		}
-		if (netInputs[i] == 5)
-		{
-			desiredOutputBits[i][4] = 1;
-		}
-		else
-		{
-			desiredOutputBits[i][4] = 0;
-		}
-		if (netInputs[i] == 6)
-		{
-			desiredOutputBits[i][5] = 1;
-		}
-		else
-		{
-			desiredOutputBits[i][5] = 0;
-		}
-		if (netInputs[i] == 7)
-		{
-			desiredOutputBits[i][6] = 1;
-		}
-		else
-		{
-			desiredOutputBits[i][6] = 0;
-		}
-	}
-}
 
 

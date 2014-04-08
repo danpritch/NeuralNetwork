@@ -59,6 +59,8 @@ void backPropagate::errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLay
 	for(int k = 0; k < oL.getNumOutput(); k++)
 	{
 		//think the error here is because i swapped things array with the order of the inputs
+		//THIS SHOULD BE CHANGED TO KEEP THE CONVENTION SET IN THE REST OF THE CODE
+		//TRAININGOUTPUT[K][INDEX] SHOULD GO BACK TO BEING TRAININGOUTPUT[INDEX][K]
 		setOutputErrorGradient(k, (oL.getNeuron(k)*(1-oL.getNeuron(k))*(trainingOutput[k][index] - oL.getNeuron(k))));
 		
 		//for all nodes in hidden layer and bias neuron

@@ -3,6 +3,126 @@ void checkOutputs(void);
 void checkErrorGradients(backPropagate bP);
 void checkDelta(backPropagate bP);
 
+void genRand(void);
+void generateNetInputs(void);
+void generateNetInputsBits(void);
+void calculateDesiredOutput(void);
+
+void genRand(void)
+{
+	int value;
+	for (int i = 0; i < 100; i++)
+	{
+		value = ((rand()%10) + 1);
+		cout << "Random number is: " << value << endl;
+	}
+}
+
+void generateNetInputs(void)
+{
+	for (int i = 0; i < inputDataLength; i++)
+	{
+		netInputs[i] = rand() % 7 + 1;
+	}
+}
+
+void generateNetInputsBits(void)
+{
+	for (int i = 0; i < inputDataLength; i++)
+	{
+		if(netInputs[i] & (1 << 0)) 
+		{
+			netInputsBits[i][0] = 1;
+		}
+		else
+		{
+			netInputsBits[i][0] = 0;
+		}
+
+		if(netInputs[i] & (1 << 1)) 
+		{
+			netInputsBits[i][1] = 1;
+		}
+		else
+		{
+			netInputsBits[i][1] = 0;
+		}
+
+		if(netInputs[i] & (1 << 2)) 
+		{
+			netInputsBits[i][2] = 1;
+		}
+		else
+		{
+			netInputsBits[i][2] = 0;
+		}
+	}
+}
+
+void calculateDesiredOutput(void)
+{
+	for(int i = 0; i < inputDataLength; i++)
+	{
+		if (netInputs[i] == 1)
+		{
+			desiredOutputBits[i][0] = 1;
+		}
+		else
+		{
+			desiredOutputBits[i][0] = 0;
+		}
+
+		if (netInputs[i] == 2)
+		{
+			desiredOutputBits[i][1] = 1;
+		}
+		else
+		{
+			desiredOutputBits[i][1] = 0;
+		}
+		if (netInputs[i] == 3)
+		{
+			desiredOutputBits[i][2] = 1;
+		}
+		else
+		{
+			desiredOutputBits[i][2] = 0;
+		}
+		if (netInputs[i] == 4)
+		{
+			desiredOutputBits[i][3] = 1;
+		}
+		else
+		{
+			desiredOutputBits[i][3] = 0;
+		}
+		if (netInputs[i] == 5)
+		{
+			desiredOutputBits[i][4] = 1;
+		}
+		else
+		{
+			desiredOutputBits[i][4] = 0;
+		}
+		if (netInputs[i] == 6)
+		{
+			desiredOutputBits[i][5] = 1;
+		}
+		else
+		{
+			desiredOutputBits[i][5] = 0;
+		}
+		if (netInputs[i] == 7)
+		{
+			desiredOutputBits[i][6] = 1;
+		}
+		else
+		{
+			desiredOutputBits[i][6] = 0;
+		}
+	}
+}
+
 void checkInputData(void)
 {
 	for (int i = 0; i < inputDataLength; i++)
