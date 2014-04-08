@@ -11,6 +11,7 @@ class inputLayer;
 class hiddenLayer;
 class outputLayer;
 class weights;
+class dataIO;
 
 class backPropagate
 {

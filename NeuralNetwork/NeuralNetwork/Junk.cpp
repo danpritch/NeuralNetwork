@@ -7,6 +7,117 @@ void generateNetInputs(void);
 void generateNetInputsBits(void);
 void calculateDesiredOutput(void);
 void passInputData(inputLayer iL, double** data, int index);
+void displayOutput(void);
+void displayOutputNeurons(outputLayer oL);
+void clampOutputs(outputLayer oL);
+void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL);
+void writeCSV(void);
+void modulus(void);
+
+void modulus(void)
+{
+	for(int i = 0; i < trainingDataLength; i++)
+	{
+		if(setError[i] < 0)
+		{
+			setError[i] = setError[i]*-1;
+		}
+	}
+}
+
+void writeCSV(void)
+{
+	ofstream MyFile;
+	MyFile.open("Ouput.csv"); //, ios::out | ios::ate | ios::app);
+
+	for(int i = 0; i < trainingDataLength; i++)
+	{
+		MyFile << setError[i];
+		MyFile << ',';
+	}
+	MyFile.close();
+}
+
+void checkNet(inputLayer iL, hiddenLayer hL, outputLayer oL, weights wil, weights who)
+{
+	//Check input layer
+
+	//Needs changed!!!! Changed to add inputLayer Class as an argument.
+	for(int i = 0; i < (input + 1); i++)
+	{
+		cout << "inputNeurons element: " << i << " has been created. Value = " << iL.getNeuron(i) << endl;
+	}
+
+	//Check hidden layer
+	for(int i = 0; i < (hidden + 1); i++)
+	{
+		cout << "hiddenNeurons element: " << i << " has been created. Value = " << hL.getNeuron(i) << endl;
+	}
+
+	//Check output layer
+	for(int i = 0; i < (output); i++)
+	{
+		cout << "outputNeurons element: " << i << " has been created. Value = " << oL.getNeuron(i) << endl;
+	}
+
+	//Check hidden input weights
+	for(int i = 0; i < (input + 1); i++)
+	{
+		//There is no connection between the inputs and the hidden bias neuron, the last element in hidden is the bias neuron.
+		for(int j = 0; j < (hidden); j++)
+		{
+			cout << "hidden input weights: (" << i << ", " << j << ") have a value of: " << wil.getWeight(i,j) << endl;
+		}
+	}
+
+	//Check output hidden weights
+	for(int i = 0; i < (hidden + 1); i++)
+	{
+		for(int j = 0; j < (output); j++)
+		{
+			cout << "output hidden weights: (" << i << ", " << j << ") have a value of: " << who.getWeight(i,j) << endl;
+		}
+	}
+}
+
+void clampOutputs(outputLayer oL)
+{
+	for (int i = 0; i < output; i++)
+	{
+		if(oL.getNeuron(i) > 0.9)
+		{
+			clampedOutput[i] = '1';
+		}
+		else if(oL.getNeuron(i) < 0.1)
+		{
+			clampedOutput[i] = '0';
+		}
+		else
+		{
+			clampedOutput[i] = '?';
+		}
+	}
+}
+
+void displayOutputNeurons(outputLayer oL)
+{
+	cout << fixed << "Output '1' = " << oL.getNeuron(0) << "			Clamped output is: " << clampedOutput[0] << endl;
+	cout << fixed << "Output '2' = " << oL.getNeuron(1) << "			Clamped output is: " << clampedOutput[1] << endl;
+	cout << fixed << "Output '3' = " << oL.getNeuron(2) << "			Clamped output is: " << clampedOutput[2] << endl;
+	cout << fixed << "Output '4' = " << oL.getNeuron(3) << "			Clamped output is: " << clampedOutput[3] << endl;
+	cout << fixed << "Output '5' = " << oL.getNeuron(4) << "			Clamped output is: " << clampedOutput[4] << endl;
+	cout << fixed << "Output '6' = " << oL.getNeuron(5) << "			Clamped output is: " << clampedOutput[5] << endl;
+	cout << fixed << "Output '7' = " << oL.getNeuron(6) << "			Clamped output is: " << clampedOutput[6] << endl;
+}
+
+
+void displayOutput(void)
+{
+	for(int i = 0; i < trainingDataLength; i++)
+	{
+		//cout << i << ". Average difference = " << setError[i] << endl;
+	}		
+}
 
 void passInputData(inputLayer iL, double** data, int index)
 {

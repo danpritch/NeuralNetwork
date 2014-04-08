@@ -39,6 +39,51 @@ void dataIO::initialise(void)
 	}
 }
 
+void dataIO::UI(inputLayer iL, weights wil, hiddenLayer hL, weights who, outputLayer oL)
+{
+	char train = 'y';
+	char charIn[4];
+	while (train == 'y')
+	{
+		std::cout << "Would you like to try the network? [y/n]: ";
+		std::cin >> train;
+		std::cin.ignore();
+		if (train == 'y')
+		{
+			std::cout << "Please enter a 3-bit number (i.e. 101) : ";
+			std::cin.getline(charIn,4);
+			iL.setNeuron(2, int(charIn[0]) - 48);
+			iL.setNeuron(1, int(charIn[1]) - 48);
+			iL.setNeuron(0, int(charIn[2]) - 48);
+			hL.calculate(iL, wil);
+			oL.calculate(hL, who);
+
+			for (int i = 0; i < numberOfOutputs; i++)
+			{
+				std::cout << std::fixed << "Output '" << (i+1) << "' = " << oL.getNeuron(i) << "			Clamped output is: " << clampOutputs(oL.getNeuron(i)) << std::endl;
+			}
+		}
+	}
+}
+
+char dataIO::clampOutputs(double x)
+{
+	if(x > 0.9)
+	{
+		return('1');
+	}
+	else if(x < 0.1)
+	{
+		return('0');
+	}
+	else
+	{
+		return('?');
+	}
+}
+
+
+
 void dataIO::readInputs(void)
 {
 	//Variables
