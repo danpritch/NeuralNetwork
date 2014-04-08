@@ -53,3 +53,57 @@ void checkDelta(backPropagate bP)
 
 
 }
+
+	ofstream fout;
+	string fileName = "input_0.csv";
+
+	for (int j = 0; j < input; j++)
+	{
+		fileName[6] = '0' + j;
+		fout.open(fileName);
+		if(fout.is_open())
+		{
+			cout << "File Opened successfully!!!. Writing data from array to file" << endl;
+
+			for (int i = 0; i < inputDataLength; i++)
+			{
+				_itoa_s(netInputsBits[i][j], buffer, 10);
+				fout << buffer << ',';
+			}
+			fout.close();
+			cout << "Array data successfully saved into the file " << fileName << endl;
+		}
+		else //file could not be opened
+		{
+			cout << "File could not be opened." << endl;
+		}
+		cout << "Moving to next array..." << endl;
+	}
+
+	fileName = "output_0.csv";
+
+	for (int j = 0; j < output; j++)
+	{
+		fileName[7] = '0' + j;
+		fout.open(fileName);
+		if(fout.is_open())
+		{
+			cout << "File Opened successfully!!!. Writing data from array to file" << endl;
+
+			for (int i = 0; i < inputDataLength; i++)
+			{
+				_itoa_s(desiredOutputBits[i][j], buffer, 10);
+				fout << buffer << ',';
+			}
+			fout.close();
+			cout << "Array data successfully saved into the file " << fileName << endl;
+		}
+		else //file could not be opened
+		{
+			cout << "File could not be opened." << endl;
+		}
+		cout << "Moving to next array..." << endl;
+	}
+
+	cout << testclass.getInput(2,0) << testclass.getInput(1,0) << testclass.getInput(0,0) << " = " << testclass.getOutput(6,0) << testclass.getOutput(5,0) << testclass.getOutput(4,0) << testclass.getOutput(3,0) << testclass.getOutput(2,0) << testclass.getOutput(1,0) << testclass.getOutput(0,0) << endl;
+

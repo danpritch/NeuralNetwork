@@ -4,6 +4,7 @@
 #include <math.h>
 #include "Network.h"
 #include "Trainer.h"
+#include "DataIO.h"
 #include <fstream>
 #include <string>
 #include "Constants.h"
@@ -11,10 +12,11 @@ using namespace std;
 
 //inputs
 unsigned char netInputs[inputDataLength];
-double netInputsBits[inputDataLength][input];
+//double netInputsBits[inputDataLength][input];
+int netInputsBits[inputDataLength][input];
 
 //This is the array i need to pass to the training class
-double desiredOutputBits[inputDataLength][output];
+int desiredOutputBits[inputDataLength][output];
 char clampedOutput[output];
 
 //prototypes
@@ -23,10 +25,8 @@ void genRand(void);
 void generateNetInputs(void);
 
 void generateNetInputsBits(void);
-void passInputData(inputLayer iL, double data[][input], int index);
+void passInputData(inputLayer iL, int data[][input], int index);
 void calculateDesiredOutput(void);
-
-//void calculateErrors(void);
 
 void displayOutput(void);
 void writeCSV(void);
@@ -41,6 +41,7 @@ int main(void)
 	char train = 'y';
 	char train2 = 'y';
 	char charIn[4];
+	//char buffer[33];
 	//initialiseNetwork();
 
 	inputLayer testLayer(input);
@@ -49,13 +50,21 @@ int main(void)
 	weights wInputHidden(testLayer, hLayer);
 	weights wHiddenOutput(hLayer, oLayer);
 	backPropagate backProp(testLayer.getInputs(), hLayer.getNumHidden(), oLayer.getNumOutput());
+	dataIO testclass(3,7);
+
 	
-	backProp.initialise(inputDataLength,output);
+	
+	backProp.initialise(inputDataLength,output,testclass);
 	generateNetInputs();
 	generateNetInputsBits();
-	calculateDesiredOutput();
+	//calculateDesiredOutput();
 
-	backProp.fillTrainingOutput(desiredOutputBits);
+
+
+
+	//netInputBits - I need to write each input to a different file, 0, 1, 2.
+
+	//backProp.fillTrainingOutput(desiredOutputBits);
 
 	while (train == 'y')
 	{
@@ -79,7 +88,7 @@ int main(void)
 		}
 	}
 
-	//trainNetwork();
+	////trainNetwork();
 	//This entire section need rewritten, and the back propogation class probably needs completely changed.
 	for (int i = 0; i < trainingDataLength; i++)
 	{
@@ -89,7 +98,7 @@ int main(void)
 		hLayer.calculate(testLayer, wInputHidden);
 		oLayer.calculate(hLayer, wHiddenOutput);
 
-		backProp.errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, LearningRate, i);
+		backProp.errorsAndGradients(testLayer, hLayer, oLayer, wHiddenOutput, i);
 		
 		wInputHidden.update(backProp);
 		wHiddenOutput.update(backProp);
@@ -118,10 +127,10 @@ int main(void)
 		}
 	}
 
-	//checkNet();
-	//displayOutput();
-	//modulus();
-	//writeCSV();
+	////checkNet();
+	////displayOutput();
+	////modulus();
+	////writeCSV();
 
 	cout << "Press any key to exit";
 	cin.get();
@@ -287,12 +296,12 @@ void generateNetInputsBits(void)
 	}
 }
 
-void passInputData(inputLayer iL, double data[][input], int index)
+void passInputData(inputLayer iL, int data[][input], int index)
 {
 	//set input neurons to input values
 	for(int i = 0; i < input; i++)
 	{
-		iL.setNeuron(i, data[index][i]);
+		iL.setNeuron(i, double(data[index][i]));
 	}
 }
 

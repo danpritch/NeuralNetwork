@@ -1,6 +1,7 @@
 #pragma once
 #include "Network.h"
 #include "Constants.h"
+#include "DataIO.h"
 //Propagation class
 
 //Back propagation class
@@ -38,7 +39,8 @@ public:
 
 	//Need variables more desciriptive than i and j but i'll change that later
 	//HiddenErrorGradients
-	void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, double learningRate, int index);
+	//removing learning rate to use the constant instead.
+	void errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, int index);
 
 	double getTrainingOutput(int i, int j);
 
@@ -47,7 +49,8 @@ public:
 	//This is the one
 	void fillTrainingOutput(double data[][output]);
 
-	void initialise(int length, int width);
+	//Changed to add dataIO to argument
+	void initialise(int length, int width, dataIO data);
 
 	double getHiddenErrorGradient(int i);
 

@@ -1,8 +1,5 @@
 #include "Trainer.h"
-//#include "Test.h"
 //Changing these to ints. But that was kind of pointless.
-
-//const int backPropagate::OUTPUT = output;
 
 backPropagate::backPropagate(int iL, int hL, int oL)
 {
@@ -12,7 +9,7 @@ backPropagate::backPropagate(int iL, int hL, int oL)
 }
 
 //need to pass the training data sting into the argument here.
-void backPropagate::initialise(int length, int width)
+void backPropagate::initialise(int length, int width, dataIO data)
 {
 	//Gradients
 	hiddenErrorGradients = new( double[numHidden + 1] );
@@ -38,12 +35,17 @@ void backPropagate::initialise(int length, int width)
 
 	//initialising training data here
 	//Using new, set the length of the data.
-	trainingOutput = new(double*[length]);
-	for (int i = 0; i < length;i++)
-	{
-		trainingOutput[i] = new(double[width]);
-		for (int j = 0; j < width; j++) trainingOutput[i][j] = 0;
-	}
+	//okay i dont need this now, as im going to make the trainingOutput = dataIO.getOutput();
+	//i Just dont havr the out put bits yet.
+	//trainingOutput = new(double*[length]);
+	//for (int i = 0; i < length;i++)
+	//{
+	//	trainingOutput[i] = new(double[width]);
+	//	for (int j = 0; j < width; j++) trainingOutput[i][j] = 0;
+	//}
+	trainingOutput = data.getOutputs();
+
+
 
 	//setError setup
 	setError = new(double[length]);
@@ -51,11 +53,13 @@ void backPropagate::initialise(int length, int width)
 }
 
 //Gradients
-void backPropagate::errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, double learningRate, int index)
+//removing learning rate to use the constant instead.
+void backPropagate::errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLayer oL, weights who, int index)
 {
 	for(int k = 0; k < oL.getNumOutput(); k++)
 	{
-		setOutputErrorGradient(k, (oL.getNeuron(k)*(1-oL.getNeuron(k))*(trainingOutput[index][k] - oL.getNeuron(k))));
+		//think the error here is because i swapped things array with the order of the inputs
+		setOutputErrorGradient(k, (oL.getNeuron(k)*(1-oL.getNeuron(k))*(trainingOutput[k][index] - oL.getNeuron(k))));
 		
 		//for all nodes in hidden layer and bias neuron
 		//The less than or equal includes the bias neuron
@@ -93,7 +97,8 @@ void backPropagate::errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLay
 	for(int k = 0; k < oL.getNumOutput(); k++)
 	{
 		//setError[index]  += outputNeurons[k] - desiredOutputBits[index][k];
-		setError[index]  += oL.getNeuron(k) - trainingOutput[index][k];
+		//same issue here
+		setError[index]  += oL.getNeuron(k) - trainingOutput[k][index];
 	}
 	setError[index] = setError[index]/oL.getNumOutput();
 }
@@ -101,14 +106,6 @@ void backPropagate::errorsAndGradients(inputLayer iL, hiddenLayer hL,  outputLay
 double backPropagate::getTrainingOutput(int i, int j)
 {
 	return trainingOutput[i][j];
-}
-
-
-
-//The ugly functions counter part.
-void backPropagate::fillTrainingOutput(int i, int j, double value)
-{
-	trainingOutput[i][j] = value;
 }
 
 //How to I change the 7 to not a variable!
@@ -120,14 +117,8 @@ void backPropagate::fillTrainingOutput(double data[][output])
 		{
 			trainingOutput[i][j] = data[i][j];
 		}
-
 	}
-
 }
-
-
-
-
 
 double backPropagate::getHiddenErrorGradient(int i)
 {
